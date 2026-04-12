@@ -513,7 +513,8 @@ export const AccountSettingsModal = ({
     questSettings: 'Búsquedas',
     otherTurfEvents: 'Otros Eventos de Terrazgo',
     cargoShipSettings: 'Configuración de Barco de Carga',
-    rallySettings: 'Configuración de Rally'
+    rallySettings: 'Configuración de Rally',
+    protectionSettings: 'Configuración de Protección'
   };
 
   // Mapeo de traducción de campos
@@ -607,7 +608,29 @@ export const AccountSettingsModal = ({
     maxRallyTime: 'Tiempo Máximo de Rally',
     keepEssSlotFree: 'Mantener Ranura de Esencia Libre',
     checkLab: 'Verificar Laboratorio',
-    levelToAttack: 'Nivel para Atacar'
+    levelToAttack: 'Nivel para Atacar',
+    // Configuración de Protección
+    alwaysOpenShield: 'Abrir Escudo Siempre',
+    openShieldWhenUnderAttack: 'Abrir Escudo Bajo Ataque',
+    openShieldWhenScouted: 'Abrir Escudo Cuando Se Explora',
+    openShieldWhenRallied: 'Abrir Escudo Cuando Se Hace Rally',
+    biggerSheildsFirst: 'Escudos Más Grandes Primero',
+    alwaysAntiScout: 'Anti-Exploración Siempre',
+    useLongerAnti: 'Usar Anti Más Largo',
+    antiScoutWhenScout: 'Anti-Exploración Cuando Se Explora',
+    recallGatherTroopsWhenUnderAttack: 'Recuperar Tropas de Recolección Bajo Ataque',
+    recallGatherTroopsWhenScouted: 'Recuperar Tropas de Recolección Cuando Se Explora',
+    recallGatherTroopsOnConflict: 'Recuperar Tropas de Recolección en Conflicto',
+    sendTroopsToRegather: 'Enviar Tropas a Reagrupar',
+    dontShelterSiege: 'No Refugiar Asedio',
+    regatherWaitTime: 'Tiempo de Espera para Reagrupar',
+    shieldRandomTime: 'Tiempo Aleatorio de Escudo',
+    ShelterType: 'Tipo de Refugio',
+    AttackShelterType: 'Tipo de Refugio de Ataque',
+    shieldRedeployTime: 'Tiempo de Redesplegue de Escudo',
+    antiRedeployTime: 'Tiempo de Redesplegue Anti',
+    recallShelterTroopsAfterAttack: 'Recuperar Tropas de Refugio Después del Ataque',
+    preferredShield: 'Escudo Preferido'
   };
 
   const translateCategory = (category) => {
