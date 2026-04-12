@@ -387,3 +387,145 @@
   gap: 10px;
   justify-content: flex-end;
 }
+
+/* ====== ACCOUNT CONFIG ====== */
+.accounts-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.account-config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface2);
+}
+
+.account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.account-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.account-id {
+  font-size: 0.8rem;
+  color: var(--dim);
+}
+
+.account-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toggle-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface2);
+}
+
+.toggle-btn.enabled {
+  color: var(--success);
+  border-color: var(--success);
+}
+
+.toggle-btn.disabled {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.toggle-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ====== SETTINGS CATEGORIES (MODAL) ====== */
+.settings-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.category-section {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--surface2);
+}
+
+.category-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+  color: var(--accent);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.category-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-field {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.setting-field label {
+  font-size: 0.85rem;
+  color: var(--dim);
+  font-weight: 500;
+}
+
+.setting-field input[type='text'],
+.setting-field input[type='number'] {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  outline: none;
+  width: 100%;
+}
+
+.setting-field input[type='text']:focus,
+.setting-field input[type='number']:focus {
+  border-color: var(--accent);
+}
+
+.setting-field input[type='checkbox'] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}

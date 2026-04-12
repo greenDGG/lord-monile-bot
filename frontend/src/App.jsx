@@ -14,6 +14,7 @@ import {
   HistoryPanel,
   ConfigSection,
   AccountsConfig,
+  AccountSettingsModal,
   ToastContainer,
 } from './components';
 import './styles/global.css';
@@ -28,6 +29,12 @@ function App() {
   const [activeSection, setActiveSection] = React.useState('dashboard');
   const [config, setConfig] = React.useState({ group_size: 0, interval: 0, check_every: 0 });
   const [accounts, setAccounts] = React.useState([]);
+  const [modalState, setModalState] = React.useState({
+    isOpen: false,
+    accountName: null,
+    accountAlias: null,
+    settings: null
+  });
 
   // Set API base URL if needed
   React.useEffect(() => {
@@ -151,6 +158,47 @@ function App() {
     }
   };
 
+  const handleEditAccount = async (accountName) => {
+    setIsLoading(true);
+    try {
+      const response = await api.getAccountSettings(accountName, 'config');
+      const accountAlias = (status?.aliases || {})[accountName] || accountName;
+      setModalState({
+        isOpen: true,
+        accountName,
+        accountAlias,
+        settings: response.settings_filtered || {}
+      });
+    } catch (error) {
+      addToast(`Error cargando categorías: ${error.message}`, 'err');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalState({
+      isOpen: false,
+      accountName: null,
+      accountAlias: null,
+      settings: null
+    });
+  };
+
+  const handleSaveAccountSettings = async (settings) => {
+    setIsLoading(true);
+    try {
+      const result = await api.updateAccountSettings(modalState.accountName, settings, 'config');
+      addToast('Categorías actualizadas', 'ok');
+      handleCloseModal();
+      loadAccounts();
+    } catch (error) {
+      addToast(`Error guardando cambios: ${error.message}`, 'err');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogin = async (token) => {
     const success = await auth.login(token);
     if (!success) {
@@ -210,10 +258,21 @@ function App() {
             accounts={accounts}
             aliases={status?.aliases || {}}
             onToggleAccount={handleToggleAccount}
+            onEditAccount={handleEditAccount}
             isLoading={isLoading}
           />
         )}
       </main>
+
+      <AccountSettingsModal
+        isOpen={modalState.isOpen}
+        accountName={modalState.accountName}
+        accountAlias={modalState.accountAlias}
+        settings={modalState.settings}
+        isLoading={isLoading}
+        onSave={handleSaveAccountSettings}
+        onClose={handleCloseModal}
+      />
 
       <ToastContainer toasts={toasts} />
     </div>

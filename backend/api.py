@@ -5,6 +5,7 @@ import json
 
 from fastapi import FastAPI, Request, HTTPException, Depends, Query
 from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
@@ -18,6 +19,15 @@ from bot_manager import get_status, restart_bot, kill_bot, start_bot
 from account_manager import get_available_accounts, get_active_accounts
 
 app = FastAPI(title="RotateLM Controller")
+
+# ---- CORS Configuration ----
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins (development). Change to specific domains in production
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend", "public")
 

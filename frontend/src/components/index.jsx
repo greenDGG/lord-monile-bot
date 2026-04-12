@@ -449,7 +449,7 @@ export const ConfigSection = ({ config, onConfigChange, onSaveConfig, isLoading 
   );
 };
 
-export const AccountsConfig = ({ accounts, aliases, onToggleAccount, isLoading }) => {
+export const AccountsConfig = ({ accounts, aliases, onToggleAccount, onEditAccount, isLoading }) => {
   return (
     <div className="dashboard-content">
       <div className="card">
@@ -461,15 +461,149 @@ export const AccountsConfig = ({ accounts, aliases, onToggleAccount, isLoading }
                 <span className="account-name">{aliases[acc.name] || acc.name}</span>
                 <span className="account-id">{acc.name}</span>
               </div>
-              <button
-                onClick={() => onToggleAccount(acc.name, acc.enabled)}
-                disabled={isLoading}
-                className={`toggle-btn ${acc.enabled ? 'enabled' : 'disabled'}`}
-              >
-                {acc.enabled ? 'Activa' : 'Inactiva'}
-              </button>
+              <div className="account-actions">
+                <button
+                  onClick={() => onToggleAccount(acc.name, acc.enabled)}
+                  disabled={isLoading}
+                  className={`toggle-btn ${acc.enabled ? 'enabled' : 'disabled'}`}
+                >
+                  {acc.enabled ? 'Activa' : 'Inactiva'}
+                </button>
+                <button
+                  onClick={() => onEditAccount(acc.name)}
+                  disabled={isLoading}
+                  className="btn btn-outline"
+                  title="Editar categorías"
+                >
+                  Editar Categorías
+                </button>
+              </div>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const AccountSettingsModal = ({ 
+  isOpen, 
+  accountName, 
+  accountAlias,
+  settings, 
+  isLoading, 
+  onSave, 
+  onClose 
+}) => {
+  const [editedSettings, setEditedSettings] = React.useState(settings || {});
+
+  React.useEffect(() => {
+    setEditedSettings(settings || {});
+  }, [settings, isOpen]);
+
+  const handleCategoryChange = (category, key, value) => {
+    setEditedSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [key]: value
+      }
+    }));
+  };
+
+  const handleSave = () => {
+    onSave(editedSettings);
+  };
+
+  if (!isOpen || !accountName) {
+    return null;
+  }
+
+  return (
+    <div className="modal-overlay open">
+      <div className="modal">
+        <div className="modal-header">
+          <h2>Editar Categorías: {accountAlias || accountName}</h2>
+          <button 
+            className="modal-close" 
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            ×
+          </button>
+        </div>
+        
+        <div className="modal-body">
+          <div className="settings-categories">
+            {Object.keys(editedSettings).map((category) => (
+              <div key={category} className="category-section">
+                <h3>{category}</h3>
+                <div className="category-fields">
+                  {typeof editedSettings[category] === 'object' && editedSettings[category] !== null ? (
+                    Object.keys(editedSettings[category]).map((key) => {
+                      const value = editedSettings[category][key];
+                      const inputType = typeof value === 'boolean' ? 'checkbox' : 'text';
+                      
+                      return (
+                        <div key={`${category}-${key}`} className="setting-field">
+                          <label htmlFor={`${category}-${key}`}>
+                            {key}
+                          </label>
+                          {inputType === 'checkbox' ? (
+                            <input
+                              id={`${category}-${key}`}
+                              type="checkbox"
+                              checked={value || false}
+                              onChange={(e) => handleCategoryChange(category, key, e.target.checked)}
+                              disabled={isLoading}
+                            />
+                          ) : (
+                            <input
+                              id={`${category}-${key}`}
+                              type="text"
+                              value={String(value)}
+                              onChange={(e) => handleCategoryChange(category, key, e.target.value)}
+                              disabled={isLoading}
+                            />
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="setting-field">
+                      <label>{category}</label>
+                      <input
+                        type="text"
+                        value={String(editedSettings[category])}
+                        onChange={(e) => setEditedSettings(prev => ({
+                          ...prev,
+                          [category]: e.target.value
+                        }))}
+                        disabled={isLoading}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="modal-footer">
+          <button 
+            onClick={onClose}
+            disabled={isLoading}
+            className="btn btn-outline"
+          >
+            Cancelar
+          </button>
+          <button 
+            onClick={handleSave}
+            disabled={isLoading}
+            className="btn btn-primary"
+          >
+            {isLoading ? 'Guardando...' : 'Guardar Cambios'}
+          </button>
         </div>
       </div>
     </div>
