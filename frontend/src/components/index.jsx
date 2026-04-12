@@ -514,7 +514,8 @@ export const AccountSettingsModal = ({
     otherTurfEvents: 'Otros Eventos de Terrazgo',
     cargoShipSettings: 'Configuración de Barco de Carga',
     rallySettings: 'Configuración de Rally',
-    protectionSettings: 'Configuración de Protección'
+    protectionSettings: 'Configuración de Protección',
+    supplySettings: 'Configuración de Suministro'
   };
 
   // Mapeo de traducción de campos
@@ -630,7 +631,20 @@ export const AccountSettingsModal = ({
     shieldRedeployTime: 'Tiempo de Redesplegue de Escudo',
     antiRedeployTime: 'Tiempo de Redesplegue Anti',
     recallShelterTroopsAfterAttack: 'Recuperar Tropas de Refugio Después del Ataque',
-    preferredShield: 'Escudo Preferido'
+    preferredShield: 'Escudo Preferido',
+    // Configuración de Suministro
+    sendResources: 'Enviar Recursos',
+    useBagResource: 'Usar Recursos de la Bolsa',
+    randomizeSpeed: 'Velocidad Aleatoria',
+    speedGear: 'Engranaje de Velocidad',
+    supplySpeed: 'Velocidad de Suministro',
+    maxTravelTime: 'Tiempo Máximo de Viaje',
+    playerToSend: 'Jugador a Enviar',
+    reservedRss: 'Recursos Reservados',
+    supplyMin: 'Mínimo de Suministro',
+    reservedBagRss: 'Recursos Reservados en Bolsa',
+    typesToSend: 'Tipos a Enviar',
+    bagTypesToSend: 'Tipos de Bolsa a Enviar'
   };
 
   const translateCategory = (category) => {
