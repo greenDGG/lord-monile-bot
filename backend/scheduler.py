@@ -17,31 +17,40 @@ def _loop():
             state = load_state()
             ensure_order()
             now = int(time.time())
+            elapsed = now - state.get("last_switch", 0)
+            current_group = state.get("current_group", 0)
 
             if state.get("paused") or state.get("mode") == "manual":
                 if not is_bot_running():
                     try:
+                        print(f"[SCHEDULER] Modo pausado/manual - Bot no está corriendo, reiniciando...")
                         start_bot()
                     except Exception as e:
                         print(f"[SCHEDULER] Error al iniciar bot: {e}")
                 time.sleep(cfg["check_every"])
                 continue
 
-            elapsed = now - state.get("last_switch", 0)
+            # Verificar si debe rotar
             if elapsed >= cfg["interval"]:
+                print(f"[SCHEDULER] Intervalo alcanzado ({elapsed}s >= {cfg['interval']}s) - Iniciando rotación automática...")
                 next_group(trigger="auto")
             else:
                 # No intentar iniciar el bot en los primeros 40 segundos después de una rotación
                 # (cubre 10 seg login + buffer para que se estabilice)
                 if elapsed > 40 and not is_bot_running():
+                    print(f"[SCHEDULER] Bot no está corriendo (elapsed={elapsed}s) - Reiniciando...")
                     try:
                         start_bot()
                     except Exception as e:
                         print(f"[SCHEDULER] Error al iniciar bot: {e}")
+                elif elapsed <= 40:
+                    print(f"[SCHEDULER] En período de estabilización ({elapsed}s <= 40s)")
 
             time.sleep(cfg["check_every"])
         except Exception as e:
             print(f"[SCHEDULER] Error en loop: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
             time.sleep(10)
 
 

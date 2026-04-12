@@ -55,13 +55,19 @@ def _rotate_impl(group_index: int, trigger: str):
     target = groups[group_index]
     prev_idx = get_current_group_index()
 
+    print(f"[ENGINE] Rotación iniciada: Grupo {prev_idx + 1} → Grupo {group_index + 1} (trigger={trigger})")
+    print(f"[ENGINE] Cuentas objetivo: {target}")
+
     # kill bot
     if is_bot_running():
+        print(f"[ENGINE] Matando bot...")
         kill_bot()
 
     # swap configs
+    print(f"[ENGINE] Swapeando cuentas...")
     ok, err = swap_accounts(target)
     if not ok:
+        print(f"[ENGINE] Error en swap: {err}")
         add_history("rotation_failed", {
             "from_group": prev_idx + 1,
             "to_group": group_index + 1,
@@ -75,9 +81,12 @@ def _rotate_impl(group_index: int, trigger: str):
         return False, f"Error al cambiar cuentas: {err}"
 
     # start bot
+    print(f"[ENGINE] Iniciando bot...")
     try:
         start_bot()
+        print(f"[ENGINE] Bot iniciado exitosamente")
     except Exception as exc:
+        print(f"[ENGINE] Error al iniciar bot: {exc}")
         add_history("bot_start_failed", {
             "group": group_index + 1,
             "accounts": target,
@@ -90,6 +99,7 @@ def _rotate_impl(group_index: int, trigger: str):
     state["current_group"] = group_index
     state["last_switch"] = int(time.time())
     save_state(state)
+    print(f"[ENGINE] Estado actualizado: Grupo {group_index + 1}, last_switch={state['last_switch']}")
 
     add_history("rotation", {
         "from_group": prev_idx + 1,
