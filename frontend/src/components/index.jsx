@@ -510,7 +510,8 @@ export const AccountSettingsModal = ({
     miscSettings: 'Varios',
     guildSettings: 'Gremio',
     turfQuests: 'Búsqueda de Terrazgo',
-    questSettings: 'Búsquedas'
+    questSettings: 'Búsquedas',
+    otherTurfEvents: 'Otros Eventos de Terrazgo'
   };
 
   // Mapeo de traducción de campos
@@ -550,7 +551,25 @@ export const AccountSettingsModal = ({
     shelterQuest: 'Búsqueda de Refugio',
     openAllGuildQuest: 'Abrir Todas las Búsquedas de Gremio',
     openAllAdminQuest: 'Abrir Todas las Búsquedas de Admin',
-    questReserve: 'Reserva de Búsquedas'
+    questReserve: 'Reserva de Búsquedas',
+    // Otros Eventos de Terrazgo
+    attackLabyrinthOther: 'Atacar Laberinto Otros',
+    collectLabWeeklyChallenge: 'Recopilar Desafío Semanal del Laberinto',
+    attackKTOther: 'Atacar Magnate Otros',
+    collectKTWeeklyChallenge: 'Recopilar Desafío Semanal del Magnate',
+    KTMode: 'Modo Magnate',
+    LabOnlyFree: 'Solo Laberinto Gratis',
+    KTOnlyFree: 'Solo Magnate Gratis',
+    LabModeOther: 'Modo Laberinto Otros',
+    PlayLottery: 'Jugar Lotería',
+    LotteryOnlyFree: 'Solo Lotería Gratis',
+    PlayFC: 'Jugar FC',
+    CollectFCRewards: 'Recopilar Recompensas FC',
+    PlayRace: 'Jugar Carrera',
+    PlayPinball: 'Jugar Pinball',
+    CollectPinballRewards: 'Recopilar Recompensas de Pinball',
+    CollectRaceRewards: 'Recopilar Recompensas de Carrera',
+    PlayLimitPass: 'Jugar Pase Limitado'
   };
 
   const translateCategory = (category) => {
