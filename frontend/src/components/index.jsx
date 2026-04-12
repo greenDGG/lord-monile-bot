@@ -772,6 +772,35 @@ export const AccountSettingsModal = ({
                           const value = editedSettings[category][key];
                           const inputType = typeof value === 'boolean' ? 'checkbox' : 'text';
                           
+                          // Renderizado especial para levelToAttack (10 niveles)
+                          if (key === 'levelToAttack') {
+                            const levels = String(value).split(',').map(v => v.trim() === 'true');
+                            
+                            return (
+                              <div key={`${category}-${key}`} className="setting-field">
+                                <label>{translateField(key)}</label>
+                                <div className="level-selector">
+                                  {levels.map((isActive, index) => (
+                                    <button
+                                      key={index}
+                                      className={`level-btn ${isActive ? 'active' : 'inactive'}`}
+                                      onClick={() => {
+                                        const newLevels = [...levels];
+                                        newLevels[index] = !newLevels[index];
+                                        const newValue = newLevels.join(',');
+                                        handleCategoryChange(category, key, newValue);
+                                      }}
+                                      disabled={isLoading}
+                                      title={`Nivel ${index + 1}`}
+                                    >
+                                      {index + 1}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          }
+                          
                           return (
                             <div key={`${category}-${key}`} className="setting-field">
                               <label htmlFor={`${category}-${key}`}>
