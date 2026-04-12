@@ -47,11 +47,15 @@ def kill_bot():
     global _status, _last_start_time
     cfg = load_config()
     _status = BotStatus.STOPPING
+    print(f"[BOT_MANAGER] kill_bot() llamado - matando {cfg['bot_process_name']}")
+    import traceback
+    traceback.print_stack(limit=5)  # Ver de dónde se llamó
     try:
         subprocess.run(
             ["taskkill", "/F", "/IM", cfg["bot_process_name"]],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15,
         )
+        print(f"[BOT_MANAGER] ✓ Bot terminado")
     except Exception:
         pass
     time.sleep(5)
@@ -81,19 +85,9 @@ def start_bot():
             stderr=subprocess.DEVNULL,
             creationflags=0x00000008,  # DETACHED_PROCESS
         )
-        
-        # Esperar más tiempo y verificar múltiples veces que el bot esté corriendo
-        print(f"[BOT_MANAGER] Esperando a que bot inicie...")
-        for i in range(10):  # Intentar 10 veces (10 segundos total)
-            time.sleep(1)
-            if is_bot_running():
-                print(f"[BOT_MANAGER] ✓ Bot detectado en tasklist (intento {i+1})")
-                _status = BotStatus.RUNNING
-                return
-        
-        # Si llegamos aquí, no se detectó en tasklist pero quizás esté iniciando
-        print(f"[BOT_MANAGER] ⚠ Bot NO encontrado en tasklist después de 10s, pero proceso se lanzó. Status=RUNNING de todas formas")
-        _status = BotStatus.RUNNING
+        print(f"[BOT_MANAGER] Proceso lanzado. Status=STARTING (verificación asincrónica)")
+        _status = BotStatus.STARTING
+        # NO esperar aquí, dejar que el scheduler lo verifique en la siguiente iteración
     except Exception as exc:
         print(f"[BOT_MANAGER] ✗ Error al abrir bot: {exc}")
         _status = BotStatus.ERROR
