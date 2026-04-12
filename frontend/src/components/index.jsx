@@ -503,9 +503,26 @@ export const AccountSettingsModal = ({
   onClose 
 }) => {
   const [editedSettings, setEditedSettings] = React.useState(settings || {});
+  const [expandedCategories, setExpandedCategories] = React.useState({});
+
+  // Mapeo de traducción de categorías
+  const categoryTranslations = {
+    miscSettings: 'Varios',
+    guildSettings: 'Gremio',
+    turfQuests: 'Búsqueda de Terrazgo'
+  };
+
+  const translateCategory = (category) => {
+    return categoryTranslations[category] || category;
+  };
 
   React.useEffect(() => {
     setEditedSettings(settings || {});
+    // Expandir la primera categoría por defecto
+    const categories = Object.keys(settings || {});
+    if (categories.length > 0) {
+      setExpandedCategories({ [categories[0]]: true });
+    }
   }, [settings, isOpen]);
 
   const handleCategoryChange = (category, key, value) => {
@@ -515,6 +532,13 @@ export const AccountSettingsModal = ({
         ...prev[category],
         [key]: value
       }
+    }));
+  };
+
+  const toggleCategory = (category) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
     }));
   };
 
@@ -541,56 +565,72 @@ export const AccountSettingsModal = ({
         </div>
         
         <div className="modal-body">
-          <div className="settings-categories">
+          <div className="settings-accordion">
             {Object.keys(editedSettings).map((category) => (
-              <div key={category} className="category-section">
-                <h3>{category}</h3>
-                <div className="category-fields">
-                  {typeof editedSettings[category] === 'object' && editedSettings[category] !== null ? (
-                    Object.keys(editedSettings[category]).map((key) => {
-                      const value = editedSettings[category][key];
-                      const inputType = typeof value === 'boolean' ? 'checkbox' : 'text';
-                      
-                      return (
-                        <div key={`${category}-${key}`} className="setting-field">
-                          <label htmlFor={`${category}-${key}`}>
-                            {key}
-                          </label>
-                          {inputType === 'checkbox' ? (
-                            <input
-                              id={`${category}-${key}`}
-                              type="checkbox"
-                              checked={value || false}
-                              onChange={(e) => handleCategoryChange(category, key, e.target.checked)}
-                              disabled={isLoading}
-                            />
-                          ) : (
-                            <input
-                              id={`${category}-${key}`}
-                              type="text"
-                              value={String(value)}
-                              onChange={(e) => handleCategoryChange(category, key, e.target.value)}
-                              disabled={isLoading}
-                            />
-                          )}
+              <div key={category} className="accordion-item">
+                <button
+                  className={`accordion-header ${expandedCategories[category] ? 'open' : ''}`}
+                  onClick={() => toggleCategory(category)}
+                  disabled={isLoading}
+                >
+                  <span className="accordion-toggle">
+                    {expandedCategories[category] ? '▾' : '▸'}
+                  </span>
+                  <span className="accordion-title">{translateCategory(category)}</span>
+                </button>
+                
+                {expandedCategories[category] && (
+                  <div className="accordion-body">
+                    {typeof editedSettings[category] === 'object' && editedSettings[category] !== null ? (
+                      <div className="category-fields">
+                        {Object.keys(editedSettings[category]).map((key) => {
+                          const value = editedSettings[category][key];
+                          const inputType = typeof value === 'boolean' ? 'checkbox' : 'text';
+                          
+                          return (
+                            <div key={`${category}-${key}`} className="setting-field">
+                              <label htmlFor={`${category}-${key}`}>
+                                {key}
+                              </label>
+                              {inputType === 'checkbox' ? (
+                                <input
+                                  id={`${category}-${key}`}
+                                  type="checkbox"
+                                  checked={value || false}
+                                  onChange={(e) => handleCategoryChange(category, key, e.target.checked)}
+                                  disabled={isLoading}
+                                />
+                              ) : (
+                                <input
+                                  id={`${category}-${key}`}
+                                  type="text"
+                                  value={String(value)}
+                                  onChange={(e) => handleCategoryChange(category, key, e.target.value)}
+                                  disabled={isLoading}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="category-fields">
+                        <div className="setting-field">
+                          <label>{category}</label>
+                          <input
+                            type="text"
+                            value={String(editedSettings[category])}
+                            onChange={(e) => setEditedSettings(prev => ({
+                              ...prev,
+                              [category]: e.target.value
+                            }))}
+                            disabled={isLoading}
+                          />
                         </div>
-                      );
-                    })
-                  ) : (
-                    <div className="setting-field">
-                      <label>{category}</label>
-                      <input
-                        type="text"
-                        value={String(editedSettings[category])}
-                        onChange={(e) => setEditedSettings(prev => ({
-                          ...prev,
-                          [category]: e.target.value
-                        }))}
-                        disabled={isLoading}
-                      />
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
