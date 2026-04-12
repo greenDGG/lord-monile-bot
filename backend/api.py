@@ -581,11 +581,22 @@ def api_update_account_settings(
     try:
         with open(settings_file, "w", encoding="utf-8") as f:
             json.dump(body.settings, f, indent=2)
+        
+        # Si los settings actualizados pertenecen a la cuenta ACTIVA,
+        # reiniciar el bot para que cargue los nuevos valores
+        if target == "config":
+            print(f"[API] Settings de cuenta ACTIVA '{account_name}' actualizados. Reiniciando bot...")
+            try:
+                restart_bot()
+            except Exception as e:
+                print(f"[API] Advertencia: No se pudo reiniciar bot: {e}")
+        
         return {
             "success": True,
             "account": account_name,
             "target": target,
-            "settings": body.settings
+            "settings": body.settings,
+            "bot_restarted": target == "config"
         }
     except Exception as e:
         raise HTTPException(400, f"Error guardando settings: {str(e)}")
