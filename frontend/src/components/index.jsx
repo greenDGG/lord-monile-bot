@@ -516,7 +516,8 @@ export const AccountSettingsModal = ({
     rallySettings: 'Configuración de Rally',
     protectionSettings: 'Configuración de Protección',
     supplySettings: 'Configuración de Suministro',
-    gatherSettings: 'Configuración de Recolección'
+    gatherSettings: 'Configuración de Recolección',
+    monsterSettings: 'Configuración de Monstruos'
   };
 
   // Mapeo de traducción de campos
@@ -666,7 +667,30 @@ export const AccountSettingsModal = ({
     tileMinimum: 'Mínimo de Baldosa',
     sendingDelay: 'Retraso de Envío',
     levelToGather: 'Nivel para Recopilar',
-    typesToGather: 'Tipos a Recopilar'
+    typesToGather: 'Tipos a Recopilar',
+    // Configuración de Monstruos
+    autoHunting: 'Caza Automática',
+    sendMonstersToChat: 'Enviar Monstruos al Chat',
+    useBoots: 'Usar Botas',
+    useEnergyItems: 'Usar Objetos de Energía',
+    oneKillHunt: 'Caza de Un Golpe',
+    comboPrediction: 'Predicción de Combo',
+    allowSaberfang: 'Permitir Saberfang',
+    huntSearchArea: 'Área de Búsqueda de Caza',
+    huntSendDelay: 'Retraso de Envío de Caza',
+    avoidConflict: 'Evitar Conflictos',
+    avoidGuildConflict: 'Evitar Conflictos del Gremio',
+    energyPercentage: 'Porcentaje de Energía',
+    huntMode: 'Modo de Caza',
+    stealPercentage: 'Porcentaje de Robo',
+    stealCombo: 'Combo de Robo',
+    heroType: 'Tipo de Héroe',
+    huntLevels: 'Niveles de Caza',
+    monsterTypes: 'Tipos de Monstruos',
+    selectedHerosMP: 'Héroes Seleccionados MP',
+    selectedHerosM: 'Héroes Seleccionados M',
+    HuntAnyMonster: 'Cazar Cualquier Monstruo',
+    monstersToHunt_: 'Monstruos a Cazar'
   };
 
   const translateCategory = (category) => {
