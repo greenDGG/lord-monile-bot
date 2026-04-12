@@ -27,6 +27,7 @@ def get_active_accounts():
 
 
 def _clean_active(active_path: str):
+    print(f"[ACCOUNT_MANAGER] _clean_active() - Limpiando {active_path}")
     removed = []
     for f in os.listdir(active_path):
         if f.lower() == "global":
@@ -37,15 +38,18 @@ def _clean_active(active_path: str):
         else:
             os.remove(p)
         removed.append(f)
+    print(f"[ACCOUNT_MANAGER] Removidas: {removed}")
     return removed
 
 
 def _deploy_accounts(acc_path: str, active_path: str, accounts: list):
+    print(f"[ACCOUNT_MANAGER] _deploy_accounts() - Desplegando: {accounts}")
     for acc in accounts:
         src = os.path.join(acc_path, acc)
         dst = os.path.join(active_path, acc)
         if not os.path.exists(src):
             raise FileNotFoundError(f"Carpeta de cuenta no encontrada: {src}")
+        print(f"[ACCOUNT_MANAGER] Copiando {acc}: {src} → {dst}")
         shutil.copytree(src, dst)
 
 
@@ -54,6 +58,7 @@ def _sync_back(active_path: str, acc_path: str):
     Copy active account folders back to acc_path, overwriting originals.
     This preserves logs, configs and any changes the bot made while running.
     """
+    print(f"[ACCOUNT_MANAGER] _sync_back() - Sincronizando cambios de cuenta activa")
     synced = []
     for f in os.listdir(active_path):
         if f.lower() == "global":
@@ -64,9 +69,11 @@ def _sync_back(active_path: str, acc_path: str):
             continue
         if not os.path.exists(os.path.join(acc_path, f)):
             continue
+        print(f"[ACCOUNT_MANAGER] Sincronizando {f}: active → acc")
         shutil.rmtree(dst)
         shutil.copytree(src, dst)
         synced.append(f)
+    print(f"[ACCOUNT_MANAGER] Sincronizadas: {synced}")
     return synced
 
 
@@ -78,6 +85,7 @@ def swap_accounts(new_accounts: list):
     3. Clean active + deploy new group
     Returns (success, error_message | None).
     """
+    print(f"[ACCOUNT_MANAGER] swap_accounts() - Cambiando a: {new_accounts}")
     cfg = load_config()
     active_path = cfg["active_path"]
     acc_path = cfg["acc_path"]
@@ -85,6 +93,7 @@ def swap_accounts(new_accounts: list):
 
     try:
         # 1. sync active accounts back to acc_path (preserve logs/configs)
+        print(f"[ACCOUNT_MANAGER] 1. Sincronizando active → acc")
         _sync_back(active_path, acc_path)
 
         # 2. backup current (non-global) for rollback
