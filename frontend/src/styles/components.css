@@ -380,9 +380,9 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  max-width: 520px;
+  max-width: 750px;
   width: 100%;
-  max-height: 85vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
 }
@@ -682,6 +682,111 @@
 }
 
 .level-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ====== RESOURCE SELECTOR ====== */
+.resource-field {
+  grid-template-columns: 150px 1fr !important;
+}
+
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.resource-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.resource-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dim);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.resource-input {
+  padding: 6px 8px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 500;
+  width: 100%;
+  min-width: 70px;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.resource-input:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.resource-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.resource-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.resource-toggle {
+  width: 100%;
+  min-height: 32px;
+  padding: 4px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resource-toggle:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface);
+  transform: scale(1.05);
+}
+
+.resource-toggle.active {
+  background: var(--success);
+  border-color: var(--success);
+  color: var(--surface);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.resource-toggle.active:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: scale(1.08);
+}
+
+.resource-toggle.inactive {
+  background: var(--surface2);
+  color: var(--dim);
+  border-color: var(--border);
+}
+
+.resource-toggle:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }

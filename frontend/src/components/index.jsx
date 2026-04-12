@@ -801,6 +801,56 @@ export const AccountSettingsModal = ({
                             );
                           }
                           
+                          // Renderizado especial para campos de recursos (5 tipos)
+                          if (['reservedRss', 'supplyMin', 'reservedBagRss', 'typesToSend', 'bagTypesToSend'].includes(key)) {
+                            const resourceNames = ['Comida', 'Piedra', 'Madera', 'Mineral', 'Oro'];
+                            const resourceValues = String(value).split(',').map(v => v.trim());
+                            const isNumericField = ['reservedRss', 'supplyMin', 'reservedBagRss'].includes(key);
+                            
+                            return (
+                              <div key={`${category}-${key}`} className="setting-field resource-field">
+                                <label>{translateField(key)}</label>
+                                <div className="resource-grid">
+                                  {resourceNames.map((resourceName, index) => {
+                                    const resourceValue = resourceValues[index];
+                                    
+                                    return (
+                                      <div key={index} className="resource-item">
+                                        <div className="resource-label">{resourceName}</div>
+                                        {isNumericField ? (
+                                          <input
+                                            type="number"
+                                            value={isNaN(parseInt(resourceValue)) ? 0 : parseInt(resourceValue)}
+                                            onChange={(e) => {
+                                              const newValues = [...resourceValues];
+                                              newValues[index] = e.target.value;
+                                              handleCategoryChange(category, key, newValues.join(','));
+                                            }}
+                                            disabled={isLoading}
+                                            className="resource-input"
+                                          />
+                                        ) : (
+                                          <button
+                                            className={`resource-toggle ${resourceValue === 'true' ? 'active' : 'inactive'}`}
+                                            onClick={() => {
+                                              const newValues = [...resourceValues];
+                                              newValues[index] = newValues[index] === 'true' ? 'false' : 'true';
+                                              handleCategoryChange(category, key, newValues.join(','));
+                                            }}
+                                            disabled={isLoading}
+                                            title={resourceName}
+                                          >
+                                            {resourceValue === 'true' ? '✓' : '✗'}
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          }
+                          
                           return (
                             <div key={`${category}-${key}`} className="setting-field">
                               <label htmlFor={`${category}-${key}`}>
