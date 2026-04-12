@@ -58,6 +58,13 @@ const LogoutIcon = () => (
   </svg>
 );
 
+const LoadingSpinner = () => (
+  <svg className="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10" style={{ opacity: 0.2 }}></circle>
+    <path d="M12 2a10 10 0 0 1 10 10" style={{ strokeDasharray: '52', strokeDashoffset: 0 }}></path>
+  </svg>
+);
+
 export const Login = ({ onLogin, error, isLoading }) => {
   const [token, setToken] = React.useState('');
 
@@ -202,42 +209,42 @@ export const ControlPanel = ({ status, onAction, isLoading }) => {
 
   return (
     <div className="card">
-      <h2>Control</h2>
+      <h2>Control {isLoading && <LoadingSpinner />}</h2>
       <div className="button-row">
         <button
           onClick={() => handleAction('prev')}
           disabled={isLoading}
           className="btn btn-outline"
         >
-          ◀ Anterior
+          {isLoading ? <LoadingSpinner /> : '◀'} {isLoading ? 'Cargando...' : 'Anterior'}
         </button>
         <button
           onClick={() => handleAction('next')}
           disabled={isLoading}
           className="btn btn-primary"
         >
-          Siguiente ▶
+          {isLoading ? <LoadingSpinner /> : '▶'} {isLoading ? 'Cargando...' : 'Siguiente'}
         </button>
         <button
           onClick={() => handleAction('reload')}
           disabled={isLoading}
           className="btn btn-outline"
         >
-          ↻ Recargar
+          {isLoading ? <LoadingSpinner /> : '↻'} {isLoading ? 'Cargando...' : 'Recargar'}
         </button>
         <button
           onClick={() => handleAction('pause')}
           disabled={isLoading}
           className="btn btn-warn"
         >
-          {status?.paused ? '▶ Reanudar' : '⏸ Pausar'}
+          {isLoading ? <LoadingSpinner /> : (status?.paused ? '▶' : '⏸')} {isLoading ? 'Cargando...' : (status?.paused ? 'Reanudar' : 'Pausar')}
         </button>
         <button
           onClick={() => handleAction('mode')}
           disabled={isLoading}
           className="btn btn-outline"
         >
-          Modo: {status?.mode === 'auto' ? 'Auto' : 'Manual'}
+          {isLoading ? <LoadingSpinner /> : '◉'} {isLoading ? 'Cargando...' : `Modo: ${status?.mode === 'auto' ? 'Auto' : 'Manual'}`}
         </button>
       </div>
       <div className="button-row" style={{ marginTop: '8px' }}>
@@ -246,21 +253,21 @@ export const ControlPanel = ({ status, onAction, isLoading }) => {
           disabled={isLoading}
           className="btn btn-success"
         >
-          Iniciar Bot
+          {isLoading ? <LoadingSpinner /> : '▶'} {isLoading ? 'Cargando...' : 'Iniciar Bot'}
         </button>
         <button
           onClick={() => handleAction('stop-bot')}
           disabled={isLoading}
           className="btn btn-danger"
         >
-          Detener Bot
+          {isLoading ? <LoadingSpinner /> : '⏹'} {isLoading ? 'Cargando...' : 'Detener Bot'}
         </button>
         <button
           onClick={() => handleAction('restart-bot')}
           disabled={isLoading}
           className="btn btn-outline"
         >
-          Reiniciar Bot
+          {isLoading ? <LoadingSpinner /> : '🔄'} {isLoading ? 'Cargando...' : 'Reiniciar Bot'}
         </button>
       </div>
     </div>
