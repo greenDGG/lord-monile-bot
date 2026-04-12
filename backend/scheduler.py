@@ -22,8 +22,8 @@ def _loop():
                 if not is_bot_running():
                     try:
                         start_bot()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        print(f"[SCHEDULER] Error al iniciar bot: {e}")
                 time.sleep(cfg["check_every"])
                 continue
 
@@ -36,11 +36,12 @@ def _loop():
                 if elapsed > 40 and not is_bot_running():
                     try:
                         start_bot()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        print(f"[SCHEDULER] Error al iniciar bot: {e}")
 
             time.sleep(cfg["check_every"])
-        except Exception:
+        except Exception as e:
+            print(f"[SCHEDULER] Error en loop: {type(e).__name__}: {e}")
             time.sleep(10)
 
 

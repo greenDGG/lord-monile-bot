@@ -25,7 +25,7 @@ def main():
         app,
         host="0.0.0.0",
         port=port,
-        log_level="error"  # Solo mostrar errores, sin logs de requests
+        log_level="warning"  # Mostrar warnings y errores
     )
 
 

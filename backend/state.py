@@ -17,8 +17,17 @@ DEFAULT_STATE = {
 
 def load_state():
     if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, encoding="utf-8") as f:
-            state = json.load(f)
+        try:
+            with open(STATE_FILE, encoding="utf-8") as f:
+                content = f.read().strip()
+                if not content:  # Archivo vacío
+                    raise ValueError("State file is empty")
+                state = json.loads(content)
+        except (json.JSONDecodeError, ValueError):
+            # State corrupto, recrear con defaults
+            state = dict(DEFAULT_STATE)
+            save_state(state)
+            return state
         for k, v in DEFAULT_STATE.items():
             if k not in state:
                 state[k] = v
@@ -35,8 +44,15 @@ def save_state(state):
 
 def load_history():
     if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(HISTORY_FILE, encoding="utf-8") as f:
+                content = f.read().strip()
+                if not content:  # Archivo vacío
+                    return []
+                return json.loads(content)
+        except (json.JSONDecodeError, ValueError):
+            # History corrupto, resetear
+            return []
     return []
 
 
