@@ -23,8 +23,9 @@ def load_state():
                 if not content:  # Archivo vacío
                     raise ValueError("State file is empty")
                 state = json.loads(content)
-        except (json.JSONDecodeError, ValueError):
+        except (json.JSONDecodeError, ValueError) as e:
             # State corrupto, recrear con defaults
+            print(f"[STATE] Archivo corrupto: {e}. Recreando con defaults...")
             state = dict(DEFAULT_STATE)
             save_state(state)
             return state
@@ -36,6 +37,15 @@ def load_state():
 
 
 def save_state(state):
+    # Log solo cambios importantes de last_switch
+    if os.path.exists(STATE_FILE):
+        try:
+            with open(STATE_FILE, encoding="utf-8") as f:
+                old_state = json.load(f)
+            if old_state.get("last_switch") != state.get("last_switch"):
+                print(f"[STATE] last_switch cambió: {old_state.get('last_switch')} → {state.get('last_switch')}")
+        except:
+            pass
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2)
 

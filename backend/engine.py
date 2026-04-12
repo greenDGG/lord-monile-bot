@@ -123,6 +123,7 @@ def next_group(trigger="manual"):
     if not groups:
         return False, "No hay grupos"
     current = get_current_group_index()
+    print(f"[ENGINE] next_group() llamado con trigger='{trigger}' desde grupo {current + 1}")
     return rotate_to((current + 1) % len(groups), trigger)
 
 

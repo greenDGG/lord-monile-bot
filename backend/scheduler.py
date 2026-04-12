@@ -31,14 +31,16 @@ def _loop():
                 continue
 
             # Verificar si debe rotar
+            print(f"[SCHEDULER] Verificando: elapsed={elapsed}s, interval={cfg['interval']}s, paused={state.get('paused')}, mode={state.get('mode')}, bot_running={is_bot_running()}")
+            
             if elapsed >= cfg["interval"]:
-                print(f"[SCHEDULER] Intervalo alcanzado ({elapsed}s >= {cfg['interval']}s) - Iniciando rotación automática...")
+                print(f"[SCHEDULER] ¡¡ROTACIÓN DISPARADA!! Intervalo alcanzado ({elapsed}s >= {cfg['interval']}s)")
                 next_group(trigger="auto")
             else:
                 # No intentar iniciar el bot en los primeros 40 segundos después de una rotación
                 # (cubre 10 seg login + buffer para que se estabilice)
                 if elapsed > 40 and not is_bot_running():
-                    print(f"[SCHEDULER] Bot no está corriendo (elapsed={elapsed}s) - Reiniciando...")
+                    print(f"[SCHEDULER] Bot no está corriendo (elapsed={elapsed}s, interval={cfg['interval']}s) - Reiniciando SIN rotar...")
                     try:
                         start_bot()
                     except Exception as e:
