@@ -512,8 +512,34 @@ export const AccountSettingsModal = ({
     turfQuests: 'Búsqueda de Terrazgo'
   };
 
+  // Mapeo de traducción de campos
+  const fieldTranslations = {
+    // Varios
+    useVipPoints: 'Usar Puntos VIP',
+    useExpItems: 'Usar Objetos de Experiencia',
+    autoOpenChests: 'Abrir Cofres Automáticamente',
+    autoClaimKingdomGifts: 'Reclamar Regalos Automáticamente',
+    useResourceFromBag: 'Usar Recursos de la Bolsa',
+    autoTreasureTrove: 'Tesoro Automático',
+    scheduleBuildSpam: 'Spam de Construcción Programado',
+    scheduleBuildSpamHours: 'Horas de Spam',
+    scheduleBuildSpamAmount: 'Cantidad de Spam',
+    scheduleBuildSpamDelay: 'Retraso de Spam',
+    // Gremio
+    sendGuildHelp: 'Enviar Ayuda del Gremio',
+    requestGuildHelp: 'Solicitar Ayuda del Gremio',
+    autoGuildGifts: 'Regalos del Gremio Automáticos',
+    // Búsqueda de Terrazgo
+    attackLabyrinth: 'Atacar Laberinto',
+    attackKingdomTycoon: 'Atacar Reino Magnate'
+  };
+
   const translateCategory = (category) => {
     return categoryTranslations[category] || category;
+  };
+
+  const translateField = (field) => {
+    return fieldTranslations[field] || field;
   };
 
   React.useEffect(() => {
@@ -590,7 +616,7 @@ export const AccountSettingsModal = ({
                           return (
                             <div key={`${category}-${key}`} className="setting-field">
                               <label htmlFor={`${category}-${key}`}>
-                                {key}
+                                {translateField(key)}
                               </label>
                               {inputType === 'checkbox' ? (
                                 <input
