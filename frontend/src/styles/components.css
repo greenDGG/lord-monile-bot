@@ -790,3 +790,75 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ====== GATHER TYPE SELECTOR ====== */
+.gather-type-selector {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.gather-type-btn {
+  padding: 10px 0;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.gather-type-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.gather-type-btn.active {
+  background: var(--accent);
+  color: var(--surface);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.gather-type-btn.active:hover:not(:disabled) {
+  opacity: 0.9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.gather-type-btn.inactive {
+  background: var(--surface2);
+  color: var(--dim);
+  border-color: var(--border);
+}
+
+.gather-type-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.gather-type-labels {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.gather-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--dim);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
