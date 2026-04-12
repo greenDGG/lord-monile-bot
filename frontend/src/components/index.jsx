@@ -512,7 +512,8 @@ export const AccountSettingsModal = ({
     turfQuests: 'Búsqueda de Terrazgo',
     questSettings: 'Búsquedas',
     otherTurfEvents: 'Otros Eventos de Terrazgo',
-    cargoShipSettings: 'Configuración de Barco de Carga'
+    cargoShipSettings: 'Configuración de Barco de Carga',
+    rallySettings: 'Configuración de Rally'
   };
 
   // Mapeo de traducción de campos
@@ -588,7 +589,25 @@ export const AccountSettingsModal = ({
     ignoreSpeedUp: 'Ignorar Acelerar',
     exchangeRssItemOnly: 'Solo Intercambiar Recursos',
     useRssFromBagIfNeeded: 'Usar Recursos de la Bolsa si es Necesario',
-    exchangeMinQuality: 'Calidad Mínima de Intercambio'
+    exchangeMinQuality: 'Calidad Mínima de Intercambio',
+    // Configuración de Rally
+    joinRallies: 'Unirse a Rallies',
+    craftEssences: 'Crear Esencias',
+    dontFillRally: 'No Llenar Rally',
+    noSiege: 'Sin Asedio',
+    noT5: 'Sin T5',
+    oneType: 'Un Solo Tipo',
+    addBuffers: 'Agregar Buffers',
+    minEssenceLevel: 'Nivel Mínimo de Esencia',
+    extraSpace: 'Espacio Extra',
+    rallyLimit: 'Límite de Rally',
+    maxWalkTime: 'Tiempo Máximo de Caminata',
+    rejoinWaitTime: 'Tiempo de Espera para Reunirse',
+    rallyTroopType: 'Tipo de Tropa Rally',
+    maxRallyTime: 'Tiempo Máximo de Rally',
+    keepEssSlotFree: 'Mantener Ranura de Esencia Libre',
+    checkLab: 'Verificar Laboratorio',
+    levelToAttack: 'Nivel para Atacar'
   };
 
   const translateCategory = (category) => {
