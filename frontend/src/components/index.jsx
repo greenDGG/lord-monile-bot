@@ -511,7 +511,8 @@ export const AccountSettingsModal = ({
     guildSettings: 'Gremio',
     turfQuests: 'Búsqueda de Terrazgo',
     questSettings: 'Búsquedas',
-    otherTurfEvents: 'Otros Eventos de Terrazgo'
+    otherTurfEvents: 'Otros Eventos de Terrazgo',
+    cargoShipSettings: 'Configuración de Barco de Carga'
   };
 
   // Mapeo de traducción de campos
@@ -569,7 +570,25 @@ export const AccountSettingsModal = ({
     PlayPinball: 'Jugar Pinball',
     CollectPinballRewards: 'Recopilar Recompensas de Pinball',
     CollectRaceRewards: 'Recopilar Recompensas de Carrera',
-    PlayLimitPass: 'Jugar Pase Limitado'
+    PlayLimitPass: 'Jugar Pase Limitado',
+    // Configuración de Barco de Carga
+    allowTrading: 'Permitir Comercio',
+    tradeFood: 'Comerciar Comida',
+    tradeStone: 'Comerciar Piedra',
+    tradeWood: 'Comerciar Madera',
+    tradeOre: 'Comerciar Mineral',
+    tradeGold: 'Comerciar Oro',
+    ignoreFood: 'Ignorar Comida',
+    ignoreStone: 'Ignorar Piedra',
+    ignoreWood: 'Ignorar Madera',
+    ignoreOre: 'Ignorar Mineral',
+    ignoreGold: 'Ignorar Oro',
+    ignoreAnima: 'Ignorar Anima',
+    ignoreLunite: 'Ignorar Lunita',
+    ignoreSpeedUp: 'Ignorar Acelerar',
+    exchangeRssItemOnly: 'Solo Intercambiar Recursos',
+    useRssFromBagIfNeeded: 'Usar Recursos de la Bolsa si es Necesario',
+    exchangeMinQuality: 'Calidad Mínima de Intercambio'
   };
 
   const translateCategory = (category) => {
