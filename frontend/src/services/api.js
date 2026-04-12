@@ -158,12 +158,12 @@ class ApiService {
     return this.request('GET', `/settings?target=${target}`);
   }
 
-  getAccountSettings(accountName, target = 'config') {
-    return this.request('GET', `/settings/account/${encodeURIComponent(accountName)}?target=${target}`);
+  getAccountSettings(accountName) {
+    return this.request('GET', `/settings/account/${encodeURIComponent(accountName)}`);
   }
 
-  updateAccountSettings(accountName, settings, target = 'config') {
-    return this.request('PUT', `/settings/account/${encodeURIComponent(accountName)}?target=${target}`, { settings });
+  updateAccountSettings(accountName, settings) {
+    return this.request('PUT', `/settings/account/${encodeURIComponent(accountName)}`, { settings });
   }
 }
 

@@ -86,6 +86,45 @@
   display: block;
 }
 
+/* ====== GROUPS GRID ====== */
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.group-btn {
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.group-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface);
+  transform: translateY(-2px);
+}
+
+.group-btn.active {
+  border-color: var(--success);
+  background: var(--success);
+  color: #fff;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+}
+
+.group-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ====== SETTINGS ====== */
 .setting-row {
   display: flex;

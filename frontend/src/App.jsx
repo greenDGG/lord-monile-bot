@@ -161,7 +161,7 @@ function App() {
   const handleEditAccount = async (accountName) => {
     setIsLoading(true);
     try {
-      const response = await api.getAccountSettings(accountName, 'config');
+      const response = await api.getAccountSettings(accountName);
       const accountAlias = (status?.aliases || {})[accountName] || accountName;
       setModalState({
         isOpen: true,
@@ -188,7 +188,7 @@ function App() {
   const handleSaveAccountSettings = async (settings) => {
     setIsLoading(true);
     try {
-      const result = await api.updateAccountSettings(modalState.accountName, settings, 'config');
+      const result = await api.updateAccountSettings(modalState.accountName, settings);
       addToast('Categorías actualizadas', 'ok');
       handleCloseModal();
       loadAccounts();

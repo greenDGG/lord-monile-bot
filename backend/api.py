@@ -467,6 +467,29 @@ def _get_account_path(cfg: dict, account_name: str, target: str) -> str:
         raise HTTPException(400, "target debe ser 'acc' o 'config'")
 
 
+def _find_account_path(cfg: dict, account_name: str) -> tuple:
+    """
+    Busca la carpeta de una cuenta. Intenta primero en config/ (activas), 
+    luego en acc/ (inactivas).
+    Retorna (ruta, tipo) donde tipo es 'config' o 'acc', o (None, None) si no existe.
+    """
+    # Primero intenta en config (cuentas activas)
+    config_path = os.path.join(cfg["active_path"], account_name)
+    if os.path.isdir(config_path):
+        settings_file = os.path.join(config_path, "settings.json")
+        if os.path.isfile(settings_file):
+            return config_path, "config"
+    
+    # Si no encuentra, intenta en acc (cuentas inactivas)
+    acc_path = os.path.join(cfg["acc_path"], account_name)
+    if os.path.isdir(acc_path):
+        settings_file = os.path.join(acc_path, "settings.json")
+        if os.path.isfile(settings_file):
+            return acc_path, "acc"
+    
+    return None, None
+
+
 def _filter_settings(settings: dict) -> dict:
     """Filtra secciones y campos no editables"""
     excluded_sections = {"connectionSettings", "statSettings", "mailSettings", "speedUpSettings", "kingdomBoosts", "realmGatherSettings"}
@@ -511,20 +534,18 @@ def _filter_settings(settings: dict) -> dict:
 @app.get("/api/settings/account/{account_name}")
 def api_get_account_settings(
     account_name: str,
-    target: str = Query(default="config"),
     _=Depends(verify_token)
 ):
-    """Obtener settings.json de una cuenta (acc o config)
-    Devuelve tanto la versión filtrada (para mostrar) como la completa (para guardar)"""
+    """Obtener settings.json de una cuenta
+    Busca automáticamente en config/ (activas) o acc/ (inactivas)"""
     account_name = _safe_account_name(account_name)
-    if target not in ("acc", "config"):
-        raise HTTPException(400, "target debe ser 'acc' o 'config'")
     cfg = load_config()
-    account_path = _get_account_path(cfg, account_name, target)
-    settings_file = os.path.join(account_path, "settings.json")
     
-    if not os.path.isfile(settings_file):
-        raise HTTPException(404, f"settings.json no encontrado en {target}/{account_name}")
+    account_path, target = _find_account_path(cfg, account_name)
+    if not account_path:
+        raise HTTPException(404, f"Cuenta '{account_name}' no encontrada en config/ ni en acc/")
+    
+    settings_file = os.path.join(account_path, "settings.json")
     
     try:
         with open(settings_file, encoding="utf-8") as f:
@@ -544,19 +565,18 @@ def api_get_account_settings(
 def api_update_account_settings(
     account_name: str,
     body: SettingsUpdate,
-    target: str = Query(default="config"),
     _=Depends(verify_token)
 ):
-    """Modificar settings.json de una cuenta (acc o config)"""
+    """Modificar settings.json de una cuenta
+    Busca automáticamente en config/ (activas) o acc/ (inactivas)"""
     account_name = _safe_account_name(account_name)
-    if target not in ("acc", "config"):
-        raise HTTPException(400, "target debe ser 'acc' o 'config'")
     cfg = load_config()
-    account_path = _get_account_path(cfg, account_name, target)
-    settings_file = os.path.join(account_path, "settings.json")
     
-    if not os.path.isfile(settings_file):
-        raise HTTPException(404, f"settings.json no encontrado en {target}/{account_name}")
+    account_path, target = _find_account_path(cfg, account_name)
+    if not account_path:
+        raise HTTPException(404, f"Cuenta '{account_name}' no encontrada en config/ ni en acc/")
+    
+    settings_file = os.path.join(account_path, "settings.json")
     
     try:
         with open(settings_file, "w", encoding="utf-8") as f:
@@ -568,7 +588,7 @@ def api_update_account_settings(
             "settings": body.settings
         }
     except Exception as e:
-        raise HTTPException(400, f"Error al guardar: {str(e)}")
+        raise HTTPException(400, f"Error guardando settings: {str(e)}")
 
 
 @app.get("/api/settings")
