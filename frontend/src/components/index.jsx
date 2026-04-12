@@ -515,7 +515,8 @@ export const AccountSettingsModal = ({
     cargoShipSettings: 'Configuración de Barco de Carga',
     rallySettings: 'Configuración de Rally',
     protectionSettings: 'Configuración de Protección',
-    supplySettings: 'Configuración de Suministro'
+    supplySettings: 'Configuración de Suministro',
+    gatherSettings: 'Configuración de Recolección'
   };
 
   // Mapeo de traducción de campos
@@ -644,7 +645,28 @@ export const AccountSettingsModal = ({
     supplyMin: 'Mínimo de Suministro',
     reservedBagRss: 'Recursos Reservados en Bolsa',
     typesToSend: 'Tipos a Enviar',
-    bagTypesToSend: 'Tipos de Bolsa a Enviar'
+    bagTypesToSend: 'Tipos de Bolsa a Enviar',
+    // Configuración de Recolección
+    gatherResources: 'Recopilar Recursos',
+    gatherLowestResources: 'Recopilar Recursos Más Bajos',
+    ignoreLevelForGems: 'Ignorar Nivel para Gemas',
+    clearTiles: 'Limpiar Baldosas',
+    targetHigherLevel: 'Apuntar Nivel Más Alto',
+    leaveSpareArmy: 'Dejar Ejército de Repuesto',
+    spareArmyAmount: 'Cantidad de Ejército de Repuesto',
+    recallCamps: 'Recuperar Campamentos',
+    useGatherGear: 'Usar Equipo de Recolección',
+    useGatherSchedule: 'Usar Horario de Recolección',
+    ignoreLevel3GF: 'Ignorar Nivel 3 GF',
+    gatherStartTime: 'Hora de Inicio de Recolección',
+    gatherEndTime: 'Hora de Fin de Recolección',
+    maxArmysToSend: 'Máximo de Ejércitos a Enviar',
+    maxSearchArea: 'Área de Búsqueda Máxima',
+    maxTravelTime: 'Tiempo Máximo de Viaje',
+    tileMinimum: 'Mínimo de Baldosa',
+    sendingDelay: 'Retraso de Envío',
+    levelToGather: 'Nivel para Recopilar',
+    typesToGather: 'Tipos a Recopilar'
   };
 
   const translateCategory = (category) => {
