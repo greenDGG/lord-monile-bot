@@ -509,7 +509,8 @@ export const AccountSettingsModal = ({
   const categoryTranslations = {
     miscSettings: 'Varios',
     guildSettings: 'Gremio',
-    turfQuests: 'Búsqueda de Terrazgo'
+    turfQuests: 'Búsqueda de Terrazgo',
+    questSettings: 'Búsquedas'
   };
 
   // Mapeo de traducción de campos
@@ -531,7 +532,25 @@ export const AccountSettingsModal = ({
     autoGuildGifts: 'Regalos del Gremio Automáticos',
     // Búsqueda de Terrazgo
     attackLabyrinth: 'Atacar Laberinto',
-    attackKingdomTycoon: 'Atacar Reino Magnate'
+    attackKingdomTycoon: 'Atacar Reino Magnate',
+    // Búsquedas
+    dailyLoginGift: 'Regalo de Login Diario',
+    autoVIPQuest: 'Búsqueda VIP Automática',
+    autoTurfQuest: 'Búsqueda de Terrazgo Automática',
+    autoChapterQuest: 'Búsqueda de Capítulo Automática',
+    autoAdminQuest: 'Búsqueda de Admin Automática',
+    autoGuildQuest: 'Búsqueda de Gremio Automática',
+    adventureLog: 'Registro de Aventura',
+    autoMysteryBox: 'Caja Misteriosa Automática',
+    autoBogo: 'Compra Uno Lleva Otro Automática',
+    collectDailyQuests: 'Recopilar Búsquedas Diarias',
+    sendEmoji: 'Enviar Emoji',
+    attackLabQuest: 'Atacar Laberinto',
+    attackTycoonQuest: 'Atacar Magnate',
+    shelterQuest: 'Búsqueda de Refugio',
+    openAllGuildQuest: 'Abrir Todas las Búsquedas de Gremio',
+    openAllAdminQuest: 'Abrir Todas las Búsquedas de Admin',
+    questReserve: 'Reserva de Búsquedas'
   };
 
   const translateCategory = (category) => {
