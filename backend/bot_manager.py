@@ -83,7 +83,7 @@ def start_bot():
 
 
 def restart_bot():
-    print(f\"[BOT_MANAGER] restart_bot() llamado - Matando y reiniciando...\")
+    print(f"[BOT_MANAGER] restart_bot() llamado - Matando y reiniciando...")
     if is_bot_running():
         kill_bot()
     start_bot()
