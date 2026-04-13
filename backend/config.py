@@ -29,8 +29,11 @@ def load_config():
                 if not content:  # Archivo vacío
                     raise ValueError("Config file is empty")
                 cfg = json.loads(content)
-        except (json.JSONDecodeError, ValueError):
+                print(f"[CONFIG] ✓ Loaded from file: group_size={cfg.get('group_size')}")
+        except (json.JSONDecodeError, ValueError) as e:
             # Config corrupto, recrear con defaults
+            print(f"[CONFIG] ✗ FALLBACK TO DEFAULTS! Error: {type(e).__name__}: {e}")
+            print(f"[CONFIG] Using default group_size: {DEFAULTS['group_size']}")
             cfg = dict(DEFAULTS)
             cfg["api_token"] = secrets.token_hex(16)
             save_config(cfg)
@@ -39,6 +42,7 @@ def load_config():
             if k not in cfg:
                 cfg[k] = v
         return cfg
+    print(f"[CONFIG] File not found: {CONFIG_FILE}, creating with defaults (group_size={DEFAULTS['group_size']})")
     cfg = dict(DEFAULTS)
     cfg["api_token"] = secrets.token_hex(16)
     save_config(cfg)

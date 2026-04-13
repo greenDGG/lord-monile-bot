@@ -75,28 +75,36 @@ def api_status(_=Depends(verify_token)):
 
 @app.post("/api/next")
 def api_next(_=Depends(verify_token)):
+    print(f"[API] /api/next llamado")
     ok, msg = next_group()
+    print(f"[API] /api/next resultado: {ok} - {msg}")
     return {"success": ok, "message": msg}
 
 
 @app.post("/api/prev")
 def api_prev(_=Depends(verify_token)):
+    print(f"[API] /api/prev llamado")
     ok, msg = prev_group()
+    print(f"[API] /api/prev resultado: {ok} - {msg}")
     return {"success": ok, "message": msg}
 
 
 @app.post("/api/goto/{group_index}")
 def api_goto(group_index: int, _=Depends(verify_token)):
+    print(f"[API] /api/goto/{group_index} llamado")
     groups = get_groups()
     if groups and (group_index < 1 or group_index > len(groups)):
         raise HTTPException(400, f"El grupo debe estar entre 1 y {len(groups)}")
     ok, msg = rotate_to(group_index - 1)
+    print(f"[API] /api/goto/{group_index} resultado: {ok} - {msg}")
     return {"success": ok, "message": msg}
 
 
 @app.post("/api/reload")
 def api_reload(_=Depends(verify_token)):
+    print(f"[API] /api/reload llamado")
     ok, msg = reload_group()
+    print(f"[API] /api/reload resultado: {ok} - {msg}")
     return {"success": ok, "message": msg}
 
 

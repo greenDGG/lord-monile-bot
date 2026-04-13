@@ -42,12 +42,15 @@ def save_state(state):
         try:
             with open(STATE_FILE, encoding="utf-8") as f:
                 old_state = json.load(f)
+            if old_state.get("current_group") != state.get("current_group"):
+                print(f"[STATE] current_group cambió: {old_state.get('current_group')} → {state.get('current_group')}")
             if old_state.get("last_switch") != state.get("last_switch"):
                 print(f"[STATE] last_switch cambió: {old_state.get('last_switch')} → {state.get('last_switch')}")
         except:
             pass
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2)
+    print(f"[STATE] state.json guardado. current_group={state.get('current_group')}, last_switch={state.get('last_switch')}")
 
 
 # ---- history ----
