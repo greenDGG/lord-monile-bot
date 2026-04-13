@@ -2,7 +2,7 @@ import threading
 import time
 
 from config import load_config
-from state import load_state
+from state import load_state, save_state
 from engine import next_group, ensure_order
 from bot_manager import is_bot_running, start_bot
 
@@ -52,6 +52,12 @@ def _loop():
                     if os.path.exists(active_path):
                         current_accounts = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
                         print(f"[SCHEDULER] Cuentas en config/ ANTES de reiniciar: {current_accounts}")
+                    
+                    # IMPORTANTE: Al reaabrir el bot, resetear last_switch para evitar rotación accidental
+                    # en la próxima iteración del scheduler
+                    state["last_switch"] = now
+                    save_state(state)
+                    print(f"[SCHEDULER] ✓ last_switch reseteado a {now} para evitar rotación accidental")
                     
                     try:
                         start_bot()  # Solo abre el .exe, nada más

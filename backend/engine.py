@@ -41,6 +41,9 @@ def ensure_order():
 
 
 def rotate_to(group_index: int, trigger: str = "manual"):
+    print(f"[ENGINE] rotate_to({group_index}, trigger='{trigger}') llamado")
+    import traceback
+    traceback.print_stack(limit=3)  # Ver de dónde se llamó
     with _lock:
         return _rotate_impl(group_index, trigger)
 
@@ -138,6 +141,8 @@ def next_group(trigger="manual"):
         return False, "No hay grupos"
     current = get_current_group_index()
     print(f"[ENGINE] next_group() llamado con trigger='{trigger}' desde grupo {current + 1}")
+    import traceback
+    traceback.print_stack(limit=3)  # Ver de dónde se llamó
     return rotate_to((current + 1) % len(groups), trigger)
 
 
