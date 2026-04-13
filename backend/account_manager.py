@@ -96,6 +96,7 @@ def ensure_accounts_deployed(expected_accounts: list):
     """
     Verifica que las cuentas esperadas estén en config/.
     Si faltan, las recopia desde acc/ automáticamente.
+    Si hay extra, las elimina.
     Retorna (True, "OK") si todo está bien, (False, error) si hay problema.
     """
     cfg = load_config()
@@ -116,7 +117,7 @@ def ensure_accounts_deployed(expected_accounts: list):
         print(f"[ACCOUNT_MANAGER] ✓ Todas las cuentas están presentes en config/")
         return True, "OK"
     
-    # Detectar cuáles faltan
+    # Detectar cuáles faltan y cuáles sobran
     missing = expected_set - current_set
     extra = current_set - expected_set
     
@@ -125,10 +126,25 @@ def ensure_accounts_deployed(expected_accounts: list):
     if extra:
         print(f"[ACCOUNT_MANAGER] ⚠ CUENTAS EXTRA: {sorted(extra)}")
     
-    # Intentar copiar las que faltan desde acc/
+    # PASO 1: Limpiar cuentas extra PRIMERO
+    if extra:
+        try:
+            print(f"[ACCOUNT_MANAGER] PASO 1: Removiendo cuentas extra...")
+            for extra_acc in sorted(extra):
+                path = os.path.join(active_path, extra_acc)
+                if os.path.exists(path):
+                    shutil.rmtree(path)
+                    print(f"[ACCOUNT_MANAGER]  ✓ Removida: {extra_acc}")
+            print(f"[ACCOUNT_MANAGER] ✓ Cuentas extra removidas")
+        except Exception as e:
+            error_msg = f"Error removiendo cuentas extra: {e}"
+            print(f"[ACCOUNT_MANAGER] ✗ {error_msg}")
+            return False, error_msg
+    
+    # PASO 2: Copiar cuentas faltantes
     if missing:
         try:
-            print(f"[ACCOUNT_MANAGER] Copiando cuentas faltantes desde acc/...")
+            print(f"[ACCOUNT_MANAGER] PASO 2: Copiando cuentas faltantes desde acc/...")
             missing_list = sorted(list(missing))
             _deploy_accounts(acc_path, active_path, missing_list)
             print(f"[ACCOUNT_MANAGER] ✓ Cuentas faltantes recopiladas exitosamente")
@@ -137,24 +153,12 @@ def ensure_accounts_deployed(expected_accounts: list):
             print(f"[ACCOUNT_MANAGER] ✗ {error_msg}")
             return False, error_msg
     
-    # Limpiar cuentas extra si las hay
-    if extra:
-        try:
-            print(f"[ACCOUNT_MANAGER] Removiendo cuentas extra...")
-            for extra_acc in extra:
-                path = os.path.join(active_path, extra_acc)
-                if os.path.exists(path):
-                    shutil.rmtree(path)
-                    print(f"[ACCOUNT_MANAGER] ✓ Removida cuenta extra: {extra_acc}")
-        except Exception as e:
-            print(f"[ACCOUNT_MANAGER] ⚠ Warning: No se pudieron remover cuentas extra: {e}")
-    
     # Verificación final
     final_accounts = get_active_accounts()
     final_set = set(final_accounts)
     
     if final_set == expected_set:
-        print(f"[ACCOUNT_MANAGER] ✓ Verificación final OK")
+        print(f"[ACCOUNT_MANAGER] ✓ Verificación final OK - Estado completo")
         return True, "OK"
     else:
         error_msg = f"Mismatch final: esperadas {sorted(expected_set)}, encontradas {sorted(final_set)}"
