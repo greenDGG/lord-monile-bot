@@ -28,6 +28,8 @@ def get_active_accounts():
 
 def _clean_active(active_path: str):
     print(f"[ACCOUNT_MANAGER] _clean_active() - Limpiando {active_path}")
+    before = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
+    print(f"[ACCOUNT_MANAGER] Carpetas ANTES de limpiar: {before}")
     removed = []
     for f in os.listdir(active_path):
         if f.lower() == "global":
@@ -38,12 +40,15 @@ def _clean_active(active_path: str):
         else:
             os.remove(p)
         removed.append(f)
+    after = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
     print(f"[ACCOUNT_MANAGER] Removidas: {removed}")
+    print(f"[ACCOUNT_MANAGER] Carpetas DESPUÉS de limpiar: {after}")
     return removed
 
 
 def _deploy_accounts(acc_path: str, active_path: str, accounts: list):
     print(f"[ACCOUNT_MANAGER] _deploy_accounts() - Desplegando: {accounts}")
+    import time
     for acc in accounts:
         src = os.path.join(acc_path, acc)
         dst = os.path.join(active_path, acc)
@@ -51,6 +56,10 @@ def _deploy_accounts(acc_path: str, active_path: str, accounts: list):
             raise FileNotFoundError(f"Carpeta de cuenta no encontrada: {src}")
         print(f"[ACCOUNT_MANAGER] Copiando {acc}: {src} → {dst}")
         shutil.copytree(src, dst)
+        print(f"[ACCOUNT_MANAGER] ✓ {acc} copiada exitosamente")
+        time.sleep(0.5)  # Pequeña espera para asegurar que se escribió correctamente
+    after = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
+    print(f"[ACCOUNT_MANAGER] ✓ Todas las cuentas desplegadas. EN DISK: {after}")
 
 
 def _sync_back(active_path: str, acc_path: str):
@@ -117,6 +126,8 @@ def swap_accounts(new_accounts: list):
 
         # 4. success → remove backup
         shutil.rmtree(backup_dir, ignore_errors=True)
+        final_accounts = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
+        print(f"[ACCOUNT_MANAGER] swap_accounts() COMPLETADO. Carpetas finales en config: {final_accounts}")
         return True, None
 
     except Exception as exc:

@@ -40,6 +40,12 @@ def _loop():
                 # No intentar iniciar el bot en los primeros 40 segundos después de una rotación
                 # (cubre 10 seg login + buffer para que se estabilice)
                 if elapsed > 40 and not is_bot_running():
+                    # Ver qué cuentas hay EN DISK antes de reiniciar
+                    import os
+                    active_path = cfg["active_path"]
+                    if os.path.exists(active_path):
+                        current_accounts = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
+                        print(f"[SCHEDULER] Cuentas en config/ ANTES de reiniciar: {current_accounts}")
                     print(f"[SCHEDULER] Bot no está corriendo (elapsed={elapsed}s, interval={cfg['interval']}s) - Reiniciando SIN rotar...")
                     try:
                         start_bot()

@@ -80,6 +80,20 @@ def _rotate_impl(group_index: int, trigger: str):
             pass
         return False, f"Error al cambiar cuentas: {err}"
 
+    # Verificar que todas las cuentas fueron desplegadas correctamente
+    print(f"[ENGINE] Verificando que todas las cuentas están en config...")
+    import os
+    cfg = load_config()
+    active_path = cfg["active_path"]
+    deployed_accounts = [
+        f for f in os.listdir(active_path)
+        if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))
+    ]
+    if set(deployed_accounts) != set(target):
+        print(f"[ENGINE] ✗ ERROR: Cuentas desplegadas ({deployed_accounts}) no coinciden con objetivo ({target})")
+        return False, f"Cuentas no se copiaron correctamente. Esperadas: {target}, Encontradas: {deployed_accounts}"
+    print(f"[ENGINE] ✓ Todas las {len(target)} cuentas verificadas en config")
+
     # start bot
     print(f"[ENGINE] Iniciando bot...")
     try:
