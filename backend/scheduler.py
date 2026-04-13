@@ -38,24 +38,27 @@ def _loop():
                 print(f"[SCHEDULER] ¡¡ROTACIÓN DISPARADA!! Intervalo alcanzado ({elapsed}s >= {cfg['interval']}s)")
                 next_group(trigger="auto")
             else:
-                # No intentar iniciar el bot en los primeros 40 segundos después de una rotación
-                # (cubre 10 seg login + buffer para que se estabilice)
-                if elapsed <= 40:
-                    print(f"[SCHEDULER] En período de estabilización ({elapsed}s <= 40s)")
-                elif not bot_is_running:
-                    # Ver qué cuentas hay EN DISK antes de reiniciar
+                # Reaabrir bot si está muerto (siempre, no solo después de 40s)
+                if not bot_is_running:
+                    # No reintentar en los primeros 40s de estabilización (solo INFO)
+                    if elapsed <= 40:
+                        print(f"[SCHEDULER] Bot NO está corriendo pero aún en estabilización ({elapsed}s <= 40s) - Reabriendo...")
+                    else:
+                        print(f"[SCHEDULER] Bot NO está corriendo (elapsed={elapsed}s > 40s) - Reabriendo...")
+                    
+                    # Ver qué cuentas hay ANTES de reiniciar
                     import os
                     active_path = cfg["active_path"]
                     if os.path.exists(active_path):
                         current_accounts = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
                         print(f"[SCHEDULER] Cuentas en config/ ANTES de reiniciar: {current_accounts}")
-                    print(f"[SCHEDULER] Bot NO está corriendo (elapsed={elapsed}s > 40s) - Intentando reiniciar...")
+                    
                     try:
-                        start_bot()
+                        start_bot()  # Solo abre el .exe, nada más
                     except Exception as e:
                         print(f"[SCHEDULER] ✗ Error al iniciar bot: {type(e).__name__}: {e}")
                 else:
-                    print(f"[SCHEDULER] Bot está corriendo, esperando siguiente intervalo")
+                    print(f"[SCHEDULER] Bot está corriendo correctamente")
 
             time.sleep(cfg["check_every"])
         except Exception as e:
