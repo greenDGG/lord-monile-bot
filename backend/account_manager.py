@@ -1,7 +1,11 @@
 import os
 import shutil
+import threading
 
 from config import load_config
+
+# Lock global para evitar race conditions entre swap_accounts y ensure_accounts_deployed
+_account_lock = threading.Lock()
 
 
 def get_available_accounts():
@@ -97,73 +101,76 @@ def ensure_accounts_deployed(expected_accounts: list):
     Verifica que las cuentas esperadas estén en config/.
     Si faltan, las recopia desde acc/ automáticamente.
     Si hay extra, las elimina.
+    
+    THREAD-SAFE: Usa lock global para evitar race conditions con swap_accounts().
     Retorna (True, "OK") si todo está bien, (False, error) si hay problema.
     """
-    cfg = load_config()
-    active_path = cfg["active_path"]
-    acc_path = cfg["acc_path"]
-    
-    # Obtener cuentas actualmente en config/
-    current_accounts = get_active_accounts()
-    current_set = set(current_accounts)
-    expected_set = set(expected_accounts)
-    
-    print(f"[ACCOUNT_MANAGER] ensure_accounts_deployed()")
-    print(f"[ACCOUNT_MANAGER]  - Esperadas: {sorted(expected_set)}")
-    print(f"[ACCOUNT_MANAGER]  - Actuales:  {sorted(current_set)}")
-    
-    # Si todas están, OK
-    if current_set == expected_set:
-        print(f"[ACCOUNT_MANAGER] ✓ Todas las cuentas están presentes en config/")
-        return True, "OK"
-    
-    # Detectar cuáles faltan y cuáles sobran
-    missing = expected_set - current_set
-    extra = current_set - expected_set
-    
-    if missing:
-        print(f"[ACCOUNT_MANAGER] ⚠ FALTAN cuentas: {sorted(missing)}")
-    if extra:
-        print(f"[ACCOUNT_MANAGER] ⚠ CUENTAS EXTRA: {sorted(extra)}")
-    
-    # PASO 1: Limpiar cuentas extra PRIMERO
-    if extra:
-        try:
-            print(f"[ACCOUNT_MANAGER] PASO 1: Removiendo cuentas extra...")
-            for extra_acc in sorted(extra):
-                path = os.path.join(active_path, extra_acc)
-                if os.path.exists(path):
-                    shutil.rmtree(path)
-                    print(f"[ACCOUNT_MANAGER]  ✓ Removida: {extra_acc}")
-            print(f"[ACCOUNT_MANAGER] ✓ Cuentas extra removidas")
-        except Exception as e:
-            error_msg = f"Error removiendo cuentas extra: {e}"
+    with _account_lock:  # Lock CRÍTICO
+        cfg = load_config()
+        active_path = cfg["active_path"]
+        acc_path = cfg["acc_path"]
+        
+        # Obtener cuentas actualmente en config/
+        current_accounts = get_active_accounts()
+        current_set = set(current_accounts)
+        expected_set = set(expected_accounts)
+        
+        print(f"[ACCOUNT_MANAGER] ensure_accounts_deployed() [LOCK ADQUIRIDO]")
+        print(f"[ACCOUNT_MANAGER]  - Esperadas: {sorted(expected_set)}")
+        print(f"[ACCOUNT_MANAGER]  - Actuales:  {sorted(current_set)}")
+        
+        # Si todas están, OK
+        if current_set == expected_set:
+            print(f"[ACCOUNT_MANAGER] ✓ Todas las cuentas están presentes en config/")
+            return True, "OK"
+        
+        # Detectar cuáles faltan y cuáles sobran
+        missing = expected_set - current_set
+        extra = current_set - expected_set
+        
+        if missing:
+            print(f"[ACCOUNT_MANAGER] ⚠ FALTAN cuentas: {sorted(missing)}")
+        if extra:
+            print(f"[ACCOUNT_MANAGER] ⚠ CUENTAS EXTRA: {sorted(extra)}")
+        
+        # PASO 1: Limpiar cuentas extra PRIMERO
+        if extra:
+            try:
+                print(f"[ACCOUNT_MANAGER] PASO 1: Removiendo cuentas extra...")
+                for extra_acc in sorted(extra):
+                    path = os.path.join(active_path, extra_acc)
+                    if os.path.exists(path):
+                        shutil.rmtree(path)
+                        print(f"[ACCOUNT_MANAGER]  ✓ Removida: {extra_acc}")
+                print(f"[ACCOUNT_MANAGER] ✓ Cuentas extra removidas")
+            except Exception as e:
+                error_msg = f"Error removiendo cuentas extra: {e}"
+                print(f"[ACCOUNT_MANAGER] ✗ {error_msg}")
+                return False, error_msg
+        
+        # PASO 2: Copiar cuentas faltantes
+        if missing:
+            try:
+                print(f"[ACCOUNT_MANAGER] PASO 2: Copiando cuentas faltantes desde acc/...")
+                missing_list = sorted(list(missing))
+                _deploy_accounts(acc_path, active_path, missing_list)
+                print(f"[ACCOUNT_MANAGER] ✓ Cuentas faltantes recopiladas exitosamente")
+            except Exception as e:
+                error_msg = f"No se pudieron copiar cuentas faltantes: {e}"
+                print(f"[ACCOUNT_MANAGER] ✗ {error_msg}")
+                return False, error_msg
+        
+        # Verificación final
+        final_accounts = get_active_accounts()
+        final_set = set(final_accounts)
+        
+        if final_set == expected_set:
+            print(f"[ACCOUNT_MANAGER] ✓ Verificación final OK - Estado completo [LOCK LIBERADO]")
+            return True, "OK"
+        else:
+            error_msg = f"Mismatch final: esperadas {sorted(expected_set)}, encontradas {sorted(final_set)}"
             print(f"[ACCOUNT_MANAGER] ✗ {error_msg}")
             return False, error_msg
-    
-    # PASO 2: Copiar cuentas faltantes
-    if missing:
-        try:
-            print(f"[ACCOUNT_MANAGER] PASO 2: Copiando cuentas faltantes desde acc/...")
-            missing_list = sorted(list(missing))
-            _deploy_accounts(acc_path, active_path, missing_list)
-            print(f"[ACCOUNT_MANAGER] ✓ Cuentas faltantes recopiladas exitosamente")
-        except Exception as e:
-            error_msg = f"No se pudieron copiar cuentas faltantes: {e}"
-            print(f"[ACCOUNT_MANAGER] ✗ {error_msg}")
-            return False, error_msg
-    
-    # Verificación final
-    final_accounts = get_active_accounts()
-    final_set = set(final_accounts)
-    
-    if final_set == expected_set:
-        print(f"[ACCOUNT_MANAGER] ✓ Verificación final OK - Estado completo")
-        return True, "OK"
-    else:
-        error_msg = f"Mismatch final: esperadas {sorted(expected_set)}, encontradas {sorted(final_set)}"
-        print(f"[ACCOUNT_MANAGER] ✗ {error_msg}")
-        return False, error_msg
 
 
 def swap_accounts(new_accounts: list):
@@ -172,59 +179,62 @@ def swap_accounts(new_accounts: list):
     1. Sync current active back to acc (preserve logs/configs)
     2. Backup current active (for rollback)
     3. Clean active + deploy new group
+    
+    THREAD-SAFE: Usa lock global para evitar race conditions con ensure_accounts_deployed().
     Returns (success, error_message | None).
     """
-    print(f"[ACCOUNT_MANAGER] swap_accounts() - Cambiando a: {new_accounts}")
-    cfg = load_config()
-    active_path = cfg["active_path"]
-    acc_path = cfg["acc_path"]
-    backup_dir = os.path.join(os.path.dirname(active_path), "_config_backup")
+    with _account_lock:  # Lock CRÍTICO
+        print(f"[ACCOUNT_MANAGER] swap_accounts() - Cambiando a: {new_accounts} [LOCK ADQUIRIDO]")
+        cfg = load_config()
+        active_path = cfg["active_path"]
+        acc_path = cfg["acc_path"]
+        backup_dir = os.path.join(os.path.dirname(active_path), "_config_backup")
 
-    try:
-        # 1. sync active accounts back to acc_path (preserve logs/configs)
-        print(f"[ACCOUNT_MANAGER] 1. Sincronizando active → acc")
-        _sync_back(active_path, acc_path)
-
-        # 2. backup current (non-global) for rollback
-        if os.path.exists(backup_dir):
-            shutil.rmtree(backup_dir)
-        os.makedirs(backup_dir, exist_ok=True)
-
-        for f in os.listdir(active_path):
-            if f.lower() == "global":
-                continue
-            src = os.path.join(active_path, f)
-            dst = os.path.join(backup_dir, f)
-            if os.path.isdir(src):
-                shutil.copytree(src, dst)
-            else:
-                shutil.copy2(src, dst)
-
-        # 3. clean + deploy new group
-        _clean_active(active_path)
-        _deploy_accounts(acc_path, active_path, new_accounts)
-
-        # 4. success → remove backup
-        shutil.rmtree(backup_dir, ignore_errors=True)
-        final_accounts = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
-        print(f"[ACCOUNT_MANAGER] swap_accounts() COMPLETADO. Carpetas finales en config: {final_accounts}")
-        return True, None
-
-    except Exception as exc:
-        # rollback
-        print(f"[ACCOUNT_MANAGER] ✗ ERROR EN SWAP: {exc}. EJECUTANDO ROLLBACK...")
         try:
-            _clean_active(active_path)
+            # 1. sync active accounts back to acc_path (preserve logs/configs)
+            print(f"[ACCOUNT_MANAGER] 1. Sincronizando active → acc")
+            _sync_back(active_path, acc_path)
+
+            # 2. backup current (non-global) for rollback
             if os.path.exists(backup_dir):
-                for f in os.listdir(backup_dir):
-                    src = os.path.join(backup_dir, f)
-                    dst = os.path.join(active_path, f)
-                    if os.path.isdir(src):
-                        shutil.copytree(src, dst)
-                    else:
-                        shutil.copy2(src, dst)
-                shutil.rmtree(backup_dir, ignore_errors=True)
-            print(f"[ACCOUNT_MANAGER] ✓ Rollback completado. Restore a carpetas anteriores")
-        except Exception as rollback_exc:
-            print(f"[ACCOUNT_MANAGER] ✗✗ ERROR DURANTE ROLLBACK: {rollback_exc}")
-        return False, str(exc)
+                shutil.rmtree(backup_dir)
+            os.makedirs(backup_dir, exist_ok=True)
+
+            for f in os.listdir(active_path):
+                if f.lower() == "global":
+                    continue
+                src = os.path.join(active_path, f)
+                dst = os.path.join(backup_dir, f)
+                if os.path.isdir(src):
+                    shutil.copytree(src, dst)
+                else:
+                    shutil.copy2(src, dst)
+
+            # 3. clean + deploy new group
+            _clean_active(active_path)
+            _deploy_accounts(acc_path, active_path, new_accounts)
+
+            # 4. success → remove backup
+            shutil.rmtree(backup_dir, ignore_errors=True)
+            final_accounts = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
+            print(f"[ACCOUNT_MANAGER] swap_accounts() COMPLETADO. Carpetas finales en config: {final_accounts} [LOCK LIBERADO]")
+            return True, None
+
+        except Exception as exc:
+            # rollback
+            print(f"[ACCOUNT_MANAGER] ✗ ERROR EN SWAP: {exc}. EJECUTANDO ROLLBACK...")
+            try:
+                _clean_active(active_path)
+                if os.path.exists(backup_dir):
+                    for f in os.listdir(backup_dir):
+                        src = os.path.join(backup_dir, f)
+                        dst = os.path.join(active_path, f)
+                        if os.path.isdir(src):
+                            shutil.copytree(src, dst)
+                        else:
+                            shutil.copy2(src, dst)
+                    shutil.rmtree(backup_dir, ignore_errors=True)
+                print(f"[ACCOUNT_MANAGER] ✓ Rollback completado. Restore a carpetas anteriores")
+            except Exception as rollback_exc:
+                print(f"[ACCOUNT_MANAGER] ✗✗ ERROR DURANTE ROLLBACK: {rollback_exc}")
+            return False, str(exc)
