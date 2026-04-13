@@ -1,56 +1,66 @@
 import json
 import os
 import time
+import threading
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(BASE_DIR, "state.json")
 HISTORY_FILE = os.path.join(BASE_DIR, "history.json")
 
+# Lock para evitar escrituras concurrentes
+_state_lock = threading.Lock()
+
 DEFAULT_STATE = {
     "order": [],
     "current_group": 0,
-    "last_switch": 0,
+    "last_switch": int(time.time()),
     "mode": "auto",
     "paused": False,
 }
 
 
 def load_state():
-    if os.path.exists(STATE_FILE):
-        try:
-            with open(STATE_FILE, encoding="utf-8") as f:
-                content = f.read().strip()
-                if not content:  # Archivo vacío
-                    raise ValueError("State file is empty")
-                state = json.loads(content)
-        except (json.JSONDecodeError, ValueError) as e:
-            # State corrupto, recrear con defaults
-            print(f"[STATE] Archivo corrupto: {e}. Recreando con defaults...")
-            state = dict(DEFAULT_STATE)
-            save_state(state)
+    with _state_lock:  # Lock para lectura consistente
+        if os.path.exists(STATE_FILE):
+            try:
+                with open(STATE_FILE, encoding="utf-8") as f:
+                    content = f.read().strip()
+                    if not content:  # Archivo vacío
+                        raise ValueError("State file is empty")
+                    state = json.loads(content)
+            except (json.JSONDecodeError, ValueError) as e:
+                # State corrupto, recrear con defaults
+                print(f"[STATE] Archivo corrupto: {e}. Recreando con defaults...")
+                state = dict(DEFAULT_STATE)
+                # NOTA: save_state también usa el lock, pero ya lo tenemos
+                # Escribir directamente sin recursión
+                with open(STATE_FILE, "w", encoding="utf-8") as f:
+                    json.dump(state, f, indent=2)
+                print(f"[STATE] state.json recreado con defaults")
+                return state
+            for k, v in DEFAULT_STATE.items():
+                if k not in state:
+                    state[k] = v
             return state
-        for k, v in DEFAULT_STATE.items():
-            if k not in state:
-                state[k] = v
-        return state
     return dict(DEFAULT_STATE)
 
 
 def save_state(state):
     # Log solo cambios importantes de last_switch
-    if os.path.exists(STATE_FILE):
-        try:
-            with open(STATE_FILE, encoding="utf-8") as f:
-                old_state = json.load(f)
-            if old_state.get("current_group") != state.get("current_group"):
-                print(f"[STATE] current_group cambió: {old_state.get('current_group')} → {state.get('current_group')}")
-            if old_state.get("last_switch") != state.get("last_switch"):
-                print(f"[STATE] last_switch cambió: {old_state.get('last_switch')} → {state.get('last_switch')}")
-        except:
-            pass
-    with open(STATE_FILE, "w", encoding="utf-8") as f:
-        json.dump(state, f, indent=2)
-    print(f"[STATE] state.json guardado. current_group={state.get('current_group')}, last_switch={state.get('last_switch')}")
+    with _state_lock:  # Lock para escritura atómica
+        if os.path.exists(STATE_FILE):
+            try:
+                with open(STATE_FILE, encoding="utf-8") as f:
+                    old_state = json.load(f)
+                if old_state.get("current_group") != state.get("current_group"):
+                    print(f"[STATE] current_group cambió: {old_state.get('current_group')} → {state.get('current_group')}")
+                if old_state.get("last_switch") != state.get("last_switch"):
+                    print(f"[STATE] last_switch cambió: {old_state.get('last_switch')} → {state.get('last_switch')}")
+            except:
+                pass
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=2)
+        print(f"[STATE] state.json guardado. current_group={state.get('current_group')}, last_switch={state.get('last_switch')}")
 
 
 # ---- history ----
