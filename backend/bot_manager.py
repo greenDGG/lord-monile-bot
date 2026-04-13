@@ -68,16 +68,26 @@ def start_bot():
     cfg = load_config()
     
     # Cooldown de 40 segundos para evitar apertura doble durante rotación
-    # (cubre 10 seg login + buffer de estabilización)
+    # PERO: si el bot no está corriendo, forzar reinicio sin esperar
     now = time.time()
-    if now - _last_start_time < 40:
-        print(f"[BOT_MANAGER] start_bot() en cooldown ({now - _last_start_time:.1f}s < 40s)")
-        return  # Aún en cooldown, no intentar abrir de nuevo
+    time_since_last_start = now - _last_start_time
+    
+    # Si el bot está corriendo, respetar el cooldown
+    if is_bot_running():
+        if time_since_last_start < 40:
+            print(f"[BOT_MANAGER] start_bot() rechazado: bot YA está corriendo y en cooldown ({time_since_last_start:.1f}s < 40s)")
+            return
+    else:
+        # Si bot NO está corriendo después de 40s, permitir reintento sin esperar
+        if time_since_last_start >= 40:
+            print(f"[BOT_MANAGER] start_bot() permitido: bot no está corriendo y cooldown expiró ({time_since_last_start:.1f}s >= 40s)")
+        else:
+            print(f"[BOT_MANAGER] start_bot() permitido: bot no está corriendo, ignorando cooldown ({time_since_last_start:.1f}s < 40s)")
     
     _last_start_time = now
     _status = BotStatus.STARTING
     try:
-        print(f"[BOT_MANAGER] start_bot() - Abriendo {cfg['bot_exe']}...")
+        print(f"[BOT_MANAGER] ✓ Abriendo bot: {cfg['bot_exe']}")
         subprocess.Popen(
             [cfg["bot_exe"]],
             cwd=cfg["bot_cwd"],
