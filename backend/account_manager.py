@@ -57,9 +57,15 @@ def _deploy_accounts(acc_path: str, active_path: str, accounts: list):
         print(f"[ACCOUNT_MANAGER] Copiando {acc}: {src} → {dst}")
         shutil.copytree(src, dst)
         print(f"[ACCOUNT_MANAGER] ✓ {acc} copiada exitosamente")
-        time.sleep(0.5)  # Pequeña espera para asegurar que se escribió correctamente
-    after = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
-    print(f"[ACCOUNT_MANAGER] ✓ Todas las cuentas desplegadas. EN DISK: {after}")
+        time.sleep(1)  # Espera ACTIVA para asegurar que se escribió completamente en disco
+    
+    # Verificar que TODAS las carpetas existan en disco ANTES de continuar
+    time.sleep(2)  # Espera extra para sincronización del FS
+    deployed_check = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
+    print(f"[ACCOUNT_MANAGER] ✓ Todas desplegadas. VERIFICACIÓN EN DISK: {sorted(deployed_check)}")
+    print(f"[ACCOUNT_MANAGER] Esperadas: {sorted(accounts)}")
+    if set(deployed_check) != set(accounts):
+        raise RuntimeError(f"Mismatch de carpetas! Esperadas: {sorted(accounts)}, Encontradas: {sorted(deployed_check)}")
 
 
 def _sync_back(active_path: str, acc_path: str):
@@ -132,6 +138,7 @@ def swap_accounts(new_accounts: list):
 
     except Exception as exc:
         # rollback
+        print(f"[ACCOUNT_MANAGER] ✗ ERROR EN SWAP: {exc}. EJECUTANDO ROLLBACK...")
         try:
             _clean_active(active_path)
             if os.path.exists(backup_dir):
@@ -143,6 +150,7 @@ def swap_accounts(new_accounts: list):
                     else:
                         shutil.copy2(src, dst)
                 shutil.rmtree(backup_dir, ignore_errors=True)
-        except Exception:
-            pass
+            print(f"[ACCOUNT_MANAGER] ✓ Rollback completado. Restore a carpetas anteriores")
+        except Exception as rollback_exc:
+            print(f"[ACCOUNT_MANAGER] ✗✗ ERROR DURANTE ROLLBACK: {rollback_exc}")
         return False, str(exc)
