@@ -97,7 +97,15 @@ def _rotate_impl(group_index: int, trigger: str):
         return False, f"Cuentas no se copiaron correctamente. Esperadas: {target}, Encontradas: {deployed_accounts}"
     print(f"[ENGINE] ✓ Todas las {len(target)} cuentas verificadas en config")
 
-    # start bot
+    # update state PRIMERO, antes de iniciar el bot
+    # Así start_bot() usará el nuevo current_group
+    state = load_state()
+    state["current_group"] = group_index
+    state["last_switch"] = int(time.time())
+    save_state(state)
+    print(f"[ENGINE] Estado actualizado AHORA: Grupo {group_index + 1}, current_group={group_index}")
+
+    # start bot con el nuevo state actualizado
     print(f"[ENGINE] Iniciando bot...")
     try:
         start_bot()
@@ -110,13 +118,6 @@ def _rotate_impl(group_index: int, trigger: str):
             "error": str(exc),
         })
         return False, f"Cuentas copiadas pero el bot no arrancó: {exc}"
-
-    # update state
-    state = load_state()
-    state["current_group"] = group_index
-    state["last_switch"] = int(time.time())
-    save_state(state)
-    print(f"[ENGINE] Estado actualizado: Grupo {group_index + 1}, last_switch={state['last_switch']}")
 
     add_history("rotation", {
         "from_group": prev_idx + 1,
