@@ -11,6 +11,7 @@ _thread = None
 
 
 def _loop():
+    global _last_bot_status
     while _running:
         try:
             cfg = load_config()
@@ -32,39 +33,30 @@ def _loop():
 
             # Verificar si debe rotar
             bot_is_running = is_bot_running()
-            print(f"[SCHEDULER] Verificando: elapsed={elapsed}s, interval={cfg['interval']}s, paused={state.get('paused')}, mode={state.get('mode')}, bot_status={bot_is_running}")
             
             if elapsed >= cfg["interval"]:
                 print(f"[SCHEDULER] ¡¡ROTACIÓN DISPARADA!! Intervalo alcanzado ({elapsed}s >= {cfg['interval']}s)")
                 next_group(trigger="auto")
-            else:
-                # Reaabrir bot si está muerto (siempre, no solo después de 40s)
-                if not bot_is_running:
-                    # No reintentar en los primeros 40s de estabilización (solo INFO)
-                    if elapsed <= 40:
-                        print(f"[SCHEDULER] Bot NO está corriendo pero aún en estabilización ({elapsed}s <= 40s) - Reabriendo...")
-                    else:
-                        print(f"[SCHEDULER] Bot NO está corriendo (elapsed={elapsed}s > 40s) - Reabriendo...")
-                    
-                    # Ver qué cuentas hay ANTES de reiniciar
-                    import os
-                    active_path = cfg["active_path"]
-                    if os.path.exists(active_path):
-                        current_accounts = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
-                        print(f"[SCHEDULER] Cuentas en config/ ANTES de reiniciar: {current_accounts}")
-                    
-                    # IMPORTANTE: Al reaabrir el bot, resetear last_switch para evitar rotación accidental
-                    # en la próxima iteración del scheduler
-                    state["last_switch"] = now
-                    save_state(state)
-                    print(f"[SCHEDULER] ✓ last_switch reseteado a {now} para evitar rotación accidental")
-                    
-                    try:
-                        start_bot()  # Solo abre el .exe, nada más
-                    except Exception as e:
-                        print(f"[SCHEDULER] ✗ Error al iniciar bot: {type(e).__name__}: {e}")
-                else:
-                    print(f"[SCHEDULER] Bot está corriendo correctamente")
+            elif not bot_is_running:
+                # Bot está muerto, reabrirlo SIN rotar
+                print(f"[SCHEDULER] Bot NO está corriendo (elapsed={elapsed}s) - Reabriendo...")
+                
+                # Ver qué cuentas hay EN DISK antes de reiniciar
+                import os
+                active_path = cfg["active_path"]
+                if os.path.exists(active_path):
+                    current_accounts = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
+                    print(f"[SCHEDULER] Cuentas en config/ ANTES de reiniciar: {current_accounts}")
+                
+                # Resetear last_switch para evitar rotación accidental
+                state["last_switch"] = now
+                save_state(state)
+                print(f"[SCHEDULER] ✓ last_switch reseteado a {now}")
+                
+                try:
+                    start_bot()  # Solo abre el .exe, nada más
+                except Exception as e:
+                    print(f"[SCHEDULER] ✗ Error al iniciar bot: {type(e).__name__}: {e}")
 
             time.sleep(cfg["check_every"])
         except Exception as e:

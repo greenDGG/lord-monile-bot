@@ -92,6 +92,76 @@ def _sync_back(active_path: str, acc_path: str):
     return synced
 
 
+def ensure_accounts_deployed(expected_accounts: list):
+    """
+    Verifica que las cuentas esperadas estén en config/.
+    Si faltan, las recopia desde acc/ automáticamente.
+    Retorna (True, "OK") si todo está bien, (False, error) si hay problema.
+    """
+    cfg = load_config()
+    active_path = cfg["active_path"]
+    acc_path = cfg["acc_path"]
+    
+    # Obtener cuentas actualmente en config/
+    current_accounts = get_active_accounts()
+    current_set = set(current_accounts)
+    expected_set = set(expected_accounts)
+    
+    print(f"[ACCOUNT_MANAGER] ensure_accounts_deployed()")
+    print(f"[ACCOUNT_MANAGER]  - Esperadas: {sorted(expected_set)}")
+    print(f"[ACCOUNT_MANAGER]  - Actuales:  {sorted(current_set)}")
+    
+    # Si todas están, OK
+    if current_set == expected_set:
+        print(f"[ACCOUNT_MANAGER] ✓ Todas las cuentas están presentes en config/")
+        return True, "OK"
+    
+    # Detectar cuáles faltan
+    missing = expected_set - current_set
+    extra = current_set - expected_set
+    
+    if missing:
+        print(f"[ACCOUNT_MANAGER] ⚠ FALTAN cuentas: {sorted(missing)}")
+    if extra:
+        print(f"[ACCOUNT_MANAGER] ⚠ CUENTAS EXTRA: {sorted(extra)}")
+    
+    # Intentar copiar las que faltan desde acc/
+    if missing:
+        try:
+            print(f"[ACCOUNT_MANAGER] Copiando cuentas faltantes desde acc/...")
+            missing_list = sorted(list(missing))
+            _deploy_accounts(acc_path, active_path, missing_list)
+            print(f"[ACCOUNT_MANAGER] ✓ Cuentas faltantes recopiladas exitosamente")
+        except Exception as e:
+            error_msg = f"No se pudieron copiar cuentas faltantes: {e}"
+            print(f"[ACCOUNT_MANAGER] ✗ {error_msg}")
+            return False, error_msg
+    
+    # Limpiar cuentas extra si las hay
+    if extra:
+        try:
+            print(f"[ACCOUNT_MANAGER] Removiendo cuentas extra...")
+            for extra_acc in extra:
+                path = os.path.join(active_path, extra_acc)
+                if os.path.exists(path):
+                    shutil.rmtree(path)
+                    print(f"[ACCOUNT_MANAGER] ✓ Removida cuenta extra: {extra_acc}")
+        except Exception as e:
+            print(f"[ACCOUNT_MANAGER] ⚠ Warning: No se pudieron remover cuentas extra: {e}")
+    
+    # Verificación final
+    final_accounts = get_active_accounts()
+    final_set = set(final_accounts)
+    
+    if final_set == expected_set:
+        print(f"[ACCOUNT_MANAGER] ✓ Verificación final OK")
+        return True, "OK"
+    else:
+        error_msg = f"Mismatch final: esperadas {sorted(expected_set)}, encontradas {sorted(final_set)}"
+        print(f"[ACCOUNT_MANAGER] ✗ {error_msg}")
+        return False, error_msg
+
+
 def swap_accounts(new_accounts: list):
     """
     Swap active accounts atomically with rollback on failure.

@@ -1,7 +1,9 @@
 import subprocess
 import time
+import threading
 
 from config import load_config
+from account_manager import ensure_accounts_deployed
 
 
 class BotStatus:
@@ -16,22 +18,59 @@ class BotStatus:
 _status = BotStatus.UNKNOWN
 _last_start_time = 0  # Cooldown para evitar doble apertura
 
+# === CACHE Y MONITOREO EN TIEMPO REAL ===
+_bot_running_cached = False  # Cache del estado actual
+_monitor_thread = None  # Hilo que monitorea constantemente
+_monitor_running = False  # Flag para controlar el hilo
+
+
+def _monitor_bot_status():
+    """Hilo dedicado que monitorea el bot cada 1 segundo"""
+    global _bot_running_cached, _last_start_time
+    
+    print("[BOT_MONITOR] ✓ Hilo de monitoreo iniciado")
+    while _monitor_running:
+        try:
+            cfg = load_config()
+            name = cfg["bot_process_name"]
+            result = subprocess.run(
+                ["tasklist", "/FI", f"IMAGENAME eq {name}", "/NH"],
+                capture_output=True, text=True, timeout=5,
+            )
+            found = name.lower() in result.stdout.lower()
+            
+            # Si cambió el estado, registrar
+            if found != _bot_running_cached:
+                if found:
+                    print(f"[BOT_MONITOR] ✓ ESTADO CAMBIÓ: Bot INICIÓ (detected)")
+                else:
+                    print(f"[BOT_MONITOR] ✗ ESTADO CAMBIÓ: Bot CERRÓ (detected)")
+                _bot_running_cached = found
+            
+            time.sleep(1)  # Verificar cada 1 segundo
+        except Exception as e:
+            print(f"[BOT_MONITOR] Error en monitoreo: {type(e).__name__}: {e}")
+            time.sleep(1)
+
+
+def start_bot_monitor():
+    """Inicia el hilo de monitoreo"""
+    global _monitor_thread, _monitor_running
+    if _monitor_thread is None:
+        _monitor_running = True
+        _monitor_thread = threading.Thread(target=_monitor_bot_status, daemon=True)
+        _monitor_thread.start()
+
+
+def stop_bot_monitor():
+    """Detiene el hilo de monitoreo"""
+    global _monitor_running
+    _monitor_running = False
+
 
 def is_bot_running():
-    cfg = load_config()
-    name = cfg["bot_process_name"]
-    try:
-        result = subprocess.run(
-            ["tasklist", "/FI", f"IMAGENAME eq {name}", "/NH"],
-            capture_output=True, text=True, timeout=10,
-        )
-        found = name.lower() in result.stdout.lower()
-        if not found:
-            print(f"[BOT_MANAGER] is_bot_running() = False (proceso {name} no encontrado en tasklist)")
-        return found
-    except Exception as e:
-        print(f"[BOT_MANAGER] is_bot_running() excepción: {e}")
-        return False
+    """Retorna el estado cacheado del bot (actualizado por el hilo monitor en tiempo real)"""
+    return _bot_running_cached
 
 
 def get_status():
@@ -44,9 +83,10 @@ def get_status():
 
 
 def kill_bot():
-    global _status, _last_start_time
+    global _status, _last_start_time, _bot_running_cached
     cfg = load_config()
     _status = BotStatus.STOPPING
+    _bot_running_cached = False  # Actualizar cache
     print(f"[BOT_MANAGER] kill_bot() llamado - matando {cfg['bot_process_name']}")
     import traceback
     traceback.print_stack(limit=5)  # Ver de dónde se llamó
@@ -64,8 +104,25 @@ def kill_bot():
 
 
 def start_bot():
-    global _status, _last_start_time
+    global _status, _last_start_time, _bot_running_cached
     cfg = load_config()
+    
+    # Obtener las cuentas que deberían estar activas
+    try:
+        from engine import get_groups, get_current_group_index
+        groups = get_groups()
+        current_idx = get_current_group_index()
+        expected_accounts = groups[current_idx] if current_idx < len(groups) else []
+    except Exception as e:
+        print(f"[BOT_MANAGER] Error obteniendo cuentas esperadas: {e}")
+        expected_accounts = []
+    
+    # Verificar que las cuentas esperadas estén en config/
+    if expected_accounts:
+        ok, msg = ensure_accounts_deployed(expected_accounts)
+        if not ok:
+            print(f"[BOT_MANAGER] ✗ No se pudieron completar las carpetas: {msg}")
+            # Continuar de todas formas
     
     # Cooldown de 40 segundos para evitar apertura doble durante rotación
     # PERO: si el bot no está corriendo, forzar reinicio sin esperar
@@ -73,7 +130,7 @@ def start_bot():
     time_since_last_start = now - _last_start_time
     
     # Si el bot está corriendo, respetar el cooldown
-    if is_bot_running():
+    if _bot_running_cached:  # Usar cache
         if time_since_last_start < 40:
             print(f"[BOT_MANAGER] start_bot() rechazado: bot YA está corriendo y en cooldown ({time_since_last_start:.1f}s < 40s)")
             return
@@ -97,7 +154,7 @@ def start_bot():
         )
         print(f"[BOT_MANAGER] Proceso lanzado. Status=STARTING (verificación asincrónica)")
         _status = BotStatus.STARTING
-        # NO esperar aquí, dejar que el scheduler lo verifique en la siguiente iteración
+        # El hilo monitor detectará cuando el bot esté realmente corriendo
     except Exception as exc:
         print(f"[BOT_MANAGER] ✗ Error al abrir bot: {exc}")
         _status = BotStatus.ERROR

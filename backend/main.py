@@ -1,6 +1,7 @@
 import uvicorn
 from config import load_config
 from scheduler import start_scheduler
+from bot_manager import start_bot_monitor
 from api import app  # noqa: F401
 from engine import ensure_order
 
@@ -20,6 +21,7 @@ def main():
     print()
 
     ensure_order()
+    start_bot_monitor()  # ← NUEVO: Iniciar hilo de monitoreo
     start_scheduler()
     uvicorn.run(
         app,
