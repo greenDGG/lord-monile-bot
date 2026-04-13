@@ -28,9 +28,13 @@ def _monitor_bot_status():
     """Hilo dedicado que monitorea el bot cada 1 segundo"""
     global _bot_running_cached, _last_start_time
     
-    print("[BOT_MONITOR] ✓ Hilo de monitoreo iniciado")
+    print("[BOT_MONITOR] ✓ Hilo de monitoreo iniciado - Verificando cada 1 segundo")
+    last_status = None
+    check_count = 0
+    
     while _monitor_running:
         try:
+            check_count += 1
             cfg = load_config()
             name = cfg["bot_process_name"]
             result = subprocess.run(
@@ -42,14 +46,16 @@ def _monitor_bot_status():
             # Si cambió el estado, registrar
             if found != _bot_running_cached:
                 if found:
-                    print(f"[BOT_MONITOR] ✓ ESTADO CAMBIÓ: Bot INICIÓ (detected)")
+                    elapsed_since_last = time.time() - _last_start_time
+                    print(f"[BOT_MONITOR] (check #{check_count}) ✓ ESTADO CAMBIÓ: Bot INICIÓ (after {elapsed_since_last:.1f}s)")
                 else:
-                    print(f"[BOT_MONITOR] ✗ ESTADO CAMBIÓ: Bot CERRÓ (detected)")
+                    print(f"[BOT_MONITOR] (check #{check_count}) ✗ ESTADO CAMBIÓ: Bot CERRÓ")
                 _bot_running_cached = found
+                last_status = found
             
             time.sleep(1)  # Verificar cada 1 segundo
         except Exception as e:
-            print(f"[BOT_MONITOR] Error en monitoreo: {type(e).__name__}: {e}")
+            print(f"[BOT_MONITOR] (check #{check_count}) Error: {type(e).__name__}: {e}")
             time.sleep(1)
 
 
@@ -107,14 +113,17 @@ def start_bot():
     global _status, _last_start_time, _bot_running_cached
     cfg = load_config()
     
+    print(f"[BOT_MANAGER] start_bot() INICIO")
+    
     # Obtener las cuentas que deberían estar activas
     try:
         from engine import get_groups, get_current_group_index
         groups = get_groups()
         current_idx = get_current_group_index()
         expected_accounts = groups[current_idx] if current_idx < len(groups) else []
+        print(f"[BOT_MANAGER] Grupo actual: {current_idx + 1}, Grupo={current_idx}, Cuentas esperadas: {expected_accounts}")
     except Exception as e:
-        print(f"[BOT_MANAGER] Error obteniendo cuentas esperadas: {e}")
+        print(f"[BOT_MANAGER] ✗ Error obteniendo cuentas esperadas: {e}")
         expected_accounts = []
     
     # Verificar que las cuentas esperadas estén en config/
@@ -123,6 +132,10 @@ def start_bot():
         if not ok:
             print(f"[BOT_MANAGER] ✗ No se pudieron completar las carpetas: {msg}")
             # Continuar de todas formas
+        else:
+            print(f"[BOT_MANAGER] ✓ Carpetas verificadas OK")
+    else:
+        print(f"[BOT_MANAGER] ⚠ No hay cuentas esperadas, lanzo sin verificar")
     
     # Cooldown de 40 segundos para evitar apertura doble durante rotación
     # PERO: si el bot no está corriendo, forzar reinicio sin esperar
@@ -132,32 +145,37 @@ def start_bot():
     # Si el bot está corriendo, respetar el cooldown
     if _bot_running_cached:  # Usar cache
         if time_since_last_start < 40:
-            print(f"[BOT_MANAGER] start_bot() rechazado: bot YA está corriendo y en cooldown ({time_since_last_start:.1f}s < 40s)")
+            print(f"[BOT_MANAGER] RC: bot YA está corriendo y en cooldown ({time_since_last_start:.1f}s < 40s) - RECHAZADO")
             return
     else:
         # Si bot NO está corriendo después de 40s, permitir reintento sin esperar
         if time_since_last_start >= 40:
-            print(f"[BOT_MANAGER] start_bot() permitido: bot no está corriendo y cooldown expiró ({time_since_last_start:.1f}s >= 40s)")
+            print(f"[BOT_MANAGER] OK: bot no está corriendo y cooldown expiró ({time_since_last_start:.1f}s >= 40s)")
         else:
-            print(f"[BOT_MANAGER] start_bot() permitido: bot no está corriendo, ignorando cooldown ({time_since_last_start:.1f}s < 40s)")
+            print(f"[BOT_MANAGER] OK: bot no está corriendo, ignorando cooldown ({time_since_last_start:.1f}s < 40s)")
     
     _last_start_time = now
     _status = BotStatus.STARTING
     try:
-        print(f"[BOT_MANAGER] ✓ Abriendo bot: {cfg['bot_exe']}")
-        subprocess.Popen(
-            [cfg["bot_exe"]],
-            cwd=cfg["bot_cwd"],
+        exe_path = cfg['bot_exe']
+        cwd = cfg['bot_cwd']
+        print(f"[BOT_MANAGER] Lanzando: {exe_path}")
+        print(f"[BOT_MANAGER] CWD: {cwd}")
+        
+        process = subprocess.Popen(
+            [exe_path],
+            cwd=cwd,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             creationflags=0x00000008,  # DETACHED_PROCESS
         )
-        print(f"[BOT_MANAGER] Proceso lanzado. Status=STARTING (verificación asincrónica)")
+        print(f"[BOT_MANAGER] ✓ Proceso lanzado (PID: {process.pid}) - Status=STARTING")
         _status = BotStatus.STARTING
-        # El hilo monitor detectará cuando el bot esté realmente corriendo
     except Exception as exc:
-        print(f"[BOT_MANAGER] ✗ Error al abrir bot: {exc}")
+        print(f"[BOT_MANAGER] ✗ EXCEPCIÓN al abrir bot: {type(exc).__name__}: {exc}")
         _status = BotStatus.ERROR
+        import traceback
+        traceback.print_exc()
         raise RuntimeError(f"No se pudo iniciar el bot: {exc}") from exc
 
 

@@ -39,7 +39,7 @@ def _loop():
                 next_group(trigger="auto")
             elif not bot_is_running:
                 # Bot está muerto, reabrirlo SIN rotar
-                print(f"[SCHEDULER] Bot NO está corriendo (elapsed={elapsed}s) - Reabriendo...")
+                print(f"[SCHEDULER] ⚠ Bot NO está corriendo (elapsed={elapsed}s) - Reabriendo...")
                 
                 # Ver qué cuentas hay EN DISK antes de reiniciar
                 import os
@@ -51,12 +51,19 @@ def _loop():
                 # Resetear last_switch para evitar rotación accidental
                 state["last_switch"] = now
                 save_state(state)
-                print(f"[SCHEDULER] ✓ last_switch reseteado a {now}")
+                print(f"[SCHEDULER] last_switch reseteado")
                 
                 try:
-                    start_bot()  # Solo abre el .exe, nada más
+                    print(f"[SCHEDULER] Llamando start_bot()...")
+                    start_bot()
+                    print(f"[SCHEDULER] ✓ start_bot() completado")
                 except Exception as e:
-                    print(f"[SCHEDULER] ✗ Error al iniciar bot: {type(e).__name__}: {e}")
+                    print(f"[SCHEDULER] ✗ Error en start_bot(): {type(e).__name__}: {e}")
+                    import traceback
+                    traceback.print_exc()
+            else:
+                # Bot está corriendo - silencioso
+                pass
 
             time.sleep(cfg["check_every"])
         except Exception as e:

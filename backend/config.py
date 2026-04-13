@@ -29,7 +29,7 @@ def load_config():
                 if not content:  # Archivo vacío
                     raise ValueError("Config file is empty")
                 cfg = json.loads(content)
-                print(f"[CONFIG] ✓ Loaded from file: group_size={cfg.get('group_size')}")
+                # print(f"[CONFIG] ✓ Loaded from file: group_size={cfg.get('group_size')}")
         except (json.JSONDecodeError, ValueError) as e:
             # Config corrupto, recrear con defaults
             print(f"[CONFIG] ✗ FALLBACK TO DEFAULTS! Error: {type(e).__name__}: {e}")
