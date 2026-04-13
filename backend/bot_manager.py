@@ -3,7 +3,7 @@ import time
 import threading
 
 from config import load_config
-from account_manager import ensure_accounts_deployed
+from account_manager import ensure_accounts_deployed, is_moving_accounts, wait_for_accounts_stable
 
 
 class BotStatus:
@@ -115,18 +115,26 @@ def start_bot():
     
     print(f"[BOT_MANAGER] start_bot() INICIO")
     
+    # SI se están moviendo carpetas, ESPERAR
+    if is_moving_accounts():
+        print(f"[BOT_MANAGER] ⚠ Detectado: Se están moviendo carpetas, ESPERANDO...")
+        if not wait_for_accounts_stable(timeout=120):
+            print(f"[BOT_MANAGER] ✗ TIMEOUT esperando estabilización de carpetas")
+            return
+        print(f"[BOT_MANAGER] ✓ Carpetas estabilizadas, continuando...")
+    
     # Obtener las cuentas que deberían estar activas
     try:
         from engine import get_groups, get_current_group_index
         groups = get_groups()
         current_idx = get_current_group_index()
         expected_accounts = groups[current_idx] if current_idx < len(groups) else []
-        print(f"[BOT_MANAGER] Grupo actual: {current_idx + 1}, Grupo={current_idx}, Cuentas esperadas: {expected_accounts}")
+        print(f"[BOT_MANAGER] Grupo actual: {current_idx + 1}, Cuentas esperadas: {expected_accounts}")
     except Exception as e:
         print(f"[BOT_MANAGER] ✗ Error obteniendo cuentas esperadas: {e}")
         expected_accounts = []
     
-    # Verificar que las cuentas esperadas estén en config/
+    # Verificar que las cuentas esperadas estén en config/ (solo verifica/repara, NO mueve)
     if expected_accounts:
         ok, msg = ensure_accounts_deployed(expected_accounts)
         if not ok:

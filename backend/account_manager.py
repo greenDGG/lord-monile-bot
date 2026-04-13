@@ -1,11 +1,30 @@
 import os
 import shutil
 import threading
+import time
 
 from config import load_config
 
 # Lock global para evitar race conditions entre swap_accounts y ensure_accounts_deployed
 _account_lock = threading.Lock()
+
+# Flag que indica si se están moviendo carpetas (rotación en progreso)
+_moving_accounts = False
+
+
+def is_moving_accounts():
+    """Retorna True si se están moviendo carpetas (rotación en progreso)"""
+    return _moving_accounts
+
+
+def wait_for_accounts_stable(timeout=60):
+    """Espera a que terminen de moverse las carpetas. Retorna True si se estabilizaron."""
+    start = time.time()
+    while time.time() - start < timeout:
+        if not is_moving_accounts():
+            return True
+        time.sleep(0.5)
+    return False
 
 
 def get_available_accounts():
@@ -180,11 +199,16 @@ def swap_accounts(new_accounts: list):
     2. Backup current active (for rollback)
     3. Clean active + deploy new group
     
-    THREAD-SAFE: Usa lock global para evitar race conditions con ensure_accounts_deployed().
+    THREAD-SAFE: Usa lock global + flag moviendo_accounts para sincronizar.
     Returns (success, error_message | None).
     """
+    global _moving_accounts
+    
+    _moving_accounts = True  # SEÑAL: Estoy moviendo carpetas
+    print(f"[ACCOUNT_MANAGER] swap_accounts() - Intentando cambiar a: {new_accounts} [FLAG=MOVIENDO]")
+    
     with _account_lock:  # Lock CRÍTICO
-        print(f"[ACCOUNT_MANAGER] swap_accounts() - Cambiando a: {new_accounts} [LOCK ADQUIRIDO]")
+        print(f"[ACCOUNT_MANAGER] swap_accounts() [LOCK ADQUIRIDO]")
         cfg = load_config()
         active_path = cfg["active_path"]
         acc_path = cfg["acc_path"]
@@ -217,7 +241,7 @@ def swap_accounts(new_accounts: list):
             # 4. success → remove backup
             shutil.rmtree(backup_dir, ignore_errors=True)
             final_accounts = [f for f in os.listdir(active_path) if f.lower() != "global" and os.path.isdir(os.path.join(active_path, f))]
-            print(f"[ACCOUNT_MANAGER] swap_accounts() COMPLETADO. Carpetas finales en config: {final_accounts} [LOCK LIBERADO]")
+            print(f"[ACCOUNT_MANAGER] swap_accounts() COMPLETADO. Carpetas finales: {final_accounts}")
             return True, None
 
         except Exception as exc:
@@ -234,7 +258,10 @@ def swap_accounts(new_accounts: list):
                         else:
                             shutil.copy2(src, dst)
                     shutil.rmtree(backup_dir, ignore_errors=True)
-                print(f"[ACCOUNT_MANAGER] ✓ Rollback completado. Restore a carpetas anteriores")
+                print(f"[ACCOUNT_MANAGER] ✓ Rollback completado")
             except Exception as rollback_exc:
                 print(f"[ACCOUNT_MANAGER] ✗✗ ERROR DURANTE ROLLBACK: {rollback_exc}")
             return False, str(exc)
+        finally:
+            _moving_accounts = False  # SEÑAL: Terminé de mover carpetas
+            print(f"[ACCOUNT_MANAGER] [LOCK LIBERADO, FLAG=OK]")
